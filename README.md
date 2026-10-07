@@ -16,7 +16,7 @@
 
 - **你可以拿它作为博客模板，因为 My Blog 界面十分美观简洁，满足私人博客的一切要求；**
 - **你也可以把它作为 SpringBoot 技术栈的学习项目，My Blog也足够符合要求，且代码和功能完备；**
-- **内置三套博客主题模板，主题风格各有千秋，满足大家的选择空间，后续会继续增加，以供大家打造自己的博客；**
+- **博客前台仅保留 amaze 主题，页面模板和静态资源按目录组织，方便定制；**
 - **技术栈新颖且知识点丰富，学习后可以提升大家对于知识的理解和掌握，对于提升你的市场竞争力有一定的帮助。**
 
 > 更多 Spring Boot 实战项目可以关注十三的另一个代码仓库 [spring-boot-projects](https://github.com/ZHENFENG13/spring-boot-projects)，该仓库中主要是 Spring Boot 的入门学习教程以及一些常用的 Spring Boot 实战项目教程，包括 Spring Boot 使用的各种示例代码，同时也包括一些实战项目的项目源码和效果展示，实战项目包括基本的 web 开发以及目前大家普遍使用的前后端分离实践项目等，后续会根据大家的反馈继续增加一些实战项目源码，摆脱各种 hello world 入门案例的束缚，真正的掌握 Spring Boot 开发。
@@ -122,37 +122,9 @@
 
 ### 博客展示页面
 
-开发时，在项目中**内置了三套博客主题模板，主题风格各有千秋**，效果如下：
+项目当前仅保留 **amaze 主题**，效果如下：
 
-#### 模板一
-
-- 首页
-
-	![index01](static-files/index01.png)
-
-- 文章浏览
-
-	![detail01](static-files/detail01.png)
-
-- 友情链接
-
-	![link01](static-files/link01.png)
-
-#### 模板二
-
-- 首页
-
-	![index02](static-files/index02.png)
-
-- 文章浏览
-
-	![detail02](static-files/detail02.png)
-
-- 友情链接
-
-	![link02](static-files/link02.png)
-
-#### 模板三
+#### amaze 主题
 
 - 首页
 
@@ -166,6 +138,10 @@
 
   ![link03](static-files/link03.png)
   
+主题由 `MyBlogController` 中的 `THEME` 常量固定为 `amaze`。页面模板位于
+`src/main/resources/templates/blog/amaze/`，主题资源位于
+`src/main/resources/static/blog/amaze/`，公共脚本位于 `static/blog/plugins/`。
+
 ## 感谢
 
 - [spring-projects](https://github.com/spring-projects/spring-boot)

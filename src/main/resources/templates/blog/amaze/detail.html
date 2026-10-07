@@ -75,7 +75,7 @@
             <th:block th:each="comment,iterStat : ${commentPageResult.list}">
                 <article class="comment">
                     <header class="clearfix">
-                        <img th:src="@{/blog/default/img/avatar.png}" class="avatar">
+                        <img th:src="@{/blog/amaze/images/avatar.png}" class="avatar">
                         <div class="meta">
                             <h3 th:text="${comment.commentator}"></h3>
                             <span class="date">
@@ -190,7 +190,6 @@
 </div>
 <footer th:replace="blog/amaze/footer::footer-fragment"></footer>
 </body>
-<script th:src="@{/blog/default/js/jquery.min.js}"></script>
 <script th:src="@{/blog/plugins/highlight/highlight.pack.js}"></script>
 <script th:src="@{/blog/plugins/comment/valid.js}"></script>
 <script th:src="@{/blog/plugins/comment/comment.js}"></script>
