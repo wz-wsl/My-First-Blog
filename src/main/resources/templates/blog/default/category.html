@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="blog/default/header::head-fragment"></head>
+<body>
+<header th:replace="blog/default/header::header-fragment"></header>
+<div class="widewrapper main">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 blog-main">
+                <h2>文章分类</h2>
+                <ul class="list-group" th:if="${not #lists.isEmpty(categories)}">
+                    <li class="list-group-item" th:each="category : ${categories}">
+                        <a th:href="@{'/category/' + ${category.categoryName}}"
+                           th:text="${category.categoryName}"></a>
+                    </li>
+                </ul>
+                <p th:if="${#lists.isEmpty(categories)}">暂无分类</p>
+            </div>
+            <aside class="col-md-4 blog-aside">
+                <div class="aside-widget">
+                    <header><h3>标签栏</h3></header>
+                    <div class="body clearfix">
+                        <ul class="tags" th:if="${not #lists.isEmpty(hotTags)}">
+                            <li th:each="hotTag : ${hotTags}">
+                                <a th:href="@{'/tag/' + ${hotTag.tagName}}"
+                                   th:text="${hotTag.tagName} + '(' + ${hotTag.tagCount} + ')'"></a>
+                            </li>
+                        </ul>
+                        <p th:if="${#lists.isEmpty(hotTags)}">暂无标签</p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+</div>
+<footer th:replace="blog/default/footer::footer-fragment"></footer>
+<script th:src="@{/blog/default/js/jquery.min.js}"></script>
+<script th:src="@{/blog/default/js/bootstrap.min.js}"></script>
+<script th:src="@{/blog/default/js/modernizr.js}"></script>
+<script th:src="@{/blog/default/js/search.js}"></script>
+</body>
+</html>
