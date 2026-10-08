@@ -1,0 +1,122 @@
+/* 可复用组件：标题、卡片、标签、列表、分页、表单、按钮 */
+
+/* 小标题与区块标题 */
+.eyebrow { display: flex; align-items: center; gap: 10px; color: var(--green); font-size: 10px; font-weight: 600; letter-spacing: .22em; }
+.eyebrow::before { content: ""; display: block; width: 23px; height: 1px; background: currentColor; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 22px; }
+.section-heading h2 { margin: 0; font-size: 19px; font-weight: 600; }
+.section-heading small { display: block; margin-top: 3px; color: var(--muted); font-size: 9px; font-weight: 400; letter-spacing: .18em; }
+.section-count { color: var(--muted); font-size: 12px; }
+.text-link { display: inline-flex; align-items: center; gap: 13px; font-size: 13px; font-weight: 600; }
+.text-link span { transition: transform .2s; }
+.text-link:hover span { transform: translateX(4px); }
+
+/* 文章卡片 */
+.post-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 23px; }
+.post-card { min-width: 0; overflow: hidden; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); transition: transform .2s, box-shadow .2s; }
+.post-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+.post-image { position: relative; display: block; overflow: hidden; aspect-ratio: 1.92; background: var(--soft); }
+.post-image img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
+.post-card:hover .post-image img { transform: scale(1.035); }
+.post-body { padding: 22px 22px 17px; }
+.post-category { display: inline-block; max-width: 100%; padding: 3px 9px; background: var(--soft); color: var(--green); border-radius: 4px; font-size: 10px; overflow-wrap: anywhere; }
+.post-title { margin: 12px 0 20px; font: 600 20px/1.65 var(--serif); overflow-wrap: anywhere; }
+.post-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 14px; border-top: 1px solid var(--line-soft); color: var(--muted); font-size: 11px; }
+.post-meta .arrow { color: var(--green); font-size: 18px; }
+
+/* 作者卡片 */
+.author-card { padding: 27px 24px; background: var(--soft); border: 1px solid var(--line); border-radius: var(--radius); }
+.author-top { display: flex; align-items: center; gap: 13px; }
+.author-top h3 { margin: 0; font-size: 16px; }
+.author-top small { color: var(--muted); font-size: 10px; letter-spacing: .09em; overflow-wrap: anywhere; }
+.author-card p { margin: 17px 0; color: var(--muted); font-size: 12px; line-height: 1.9; overflow-wrap: anywhere; }
+.author-card .text-link { font-size: 11px; }
+.author-avatar { width: 48px; height: 48px; object-fit: cover; flex-shrink: 0; background: var(--green-light); border: 3px solid var(--paper); border-radius: 50%; }
+
+/* 侧栏区块 */
+.sidebar-title { display: flex; align-items: center; justify-content: space-between; margin: 0 0 13px; font-size: 13px; }
+.sidebar-title small { color: var(--muted); font-size: 9px; font-weight: 400; letter-spacing: .1em; }
+
+/* 搜索框 */
+.search-form { display: flex; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+.search-form:focus-within { border-color: var(--green-mid); }
+.search-form input { width: 100%; min-width: 0; padding: 8px 10px; background: transparent; border: 0; font-size: 12px; }
+.search-form input:focus { outline: none; }
+.search-form button { display: grid; place-items: center; flex-shrink: 0; width: 36px; background: var(--ink); color: #fff; border: 0; border-radius: 4px; }
+.search-form svg { width: 15px; height: 15px; }
+
+/* 标签 */
+.tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag-list a { max-width: 100%; padding: 4px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; font-size: 11px; overflow-wrap: anywhere; }
+.tag-list a:hover { background: var(--soft); border-color: var(--green-light); }
+.tag-list small { margin-left: 5px; color: var(--muted); }
+
+/* 带序号的文章列表 */
+.reading-list { margin: 0; padding: 0; list-style: none; counter-reset: articles; }
+.reading-list li { display: flex; gap: 11px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 12px; counter-increment: articles; }
+.reading-list li::before { content: counter(articles, decimal-leading-zero); flex-shrink: 0; color: var(--faint); font: 12px/1.9 var(--serif); }
+.reading-list a { overflow-wrap: anywhere; }
+
+/* 空状态 */
+.empty-state { padding: 48px 20px; text-align: center; background: rgba(255, 255, 255, .6); border: 1px dashed var(--green-light); border-radius: var(--radius); }
+.empty-state h2 { margin: 10px 0; font: 22px var(--serif); }
+.empty-state p { margin: 0; color: var(--muted); font-size: 13px; }
+.empty-symbol { color: var(--green-mid); font-size: 30px; }
+
+/* 分页 */
+.pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-top: 32px; }
+.pagination a, .pagination span { display: grid; place-items: center; min-width: 36px; height: 36px; padding: 5px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); font-size: 12px; }
+.pagination a:hover { border-color: var(--green-light); }
+.pagination .current { background: var(--ink); color: #fff; border-color: var(--ink); }
+.pagination .disabled { color: var(--faint); }
+
+/* 卡片网格（分类、友链） */
+.card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.info-card { display: block; min-width: 0; padding: 25px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.info-card:hover { background: var(--tint); }
+.info-card img { width: 34px; height: 34px; object-fit: contain; margin-bottom: 14px; }
+.info-card h3 { margin: 0 0 9px; font-size: 17px; overflow-wrap: anywhere; }
+.info-card p { margin: 0; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.info-card .card-arrow { display: block; margin-top: 20px; color: var(--green); }
+
+/* 表单 */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 17px; }
+.field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 17px; font-size: 12px; }
+.field input, .field textarea { width: 100%; padding: 10px 12px; background: #fcfdf9; border: 1px solid var(--line); border-radius: var(--radius-sm); font-size: 13px; }
+.field input:focus, .field textarea:focus { border-color: var(--green-mid); outline: none; }
+.field textarea { min-height: 120px; resize: vertical; }
+.captcha-field { display: flex; align-items: center; gap: 12px; }
+.captcha-field input { flex: 1; min-width: 0; }
+.captcha-refresh { flex-shrink: 0; overflow: hidden; padding: 0; line-height: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); }
+.captcha-refresh img { width: 120px; height: 40px; object-fit: contain; }
+
+/* 按钮 */
+.button { display: inline-flex; align-items: center; justify-content: center; gap: 12px; padding: 11px 20px; background: var(--ink); color: #fff; border: 1px solid var(--ink); border-radius: var(--radius-sm); font-size: 13px; }
+.button:hover { background: var(--green); border-color: var(--green); color: #fff; }
+
+/* 回到顶部 */
+.back-top { position: fixed; right: 25px; bottom: 25px; z-index: 20; padding: 8px 13px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; box-shadow: var(--shadow); font-size: 13px; }
+.back-top[hidden] { display: none; }
+
+@media (max-width: 1000px) {
+  .post-grid { gap: 16px; }
+  .post-body { padding: 17px; }
+  .post-title { font-size: 18px; }
+}
+
+@media (max-width: 760px) {
+  .author-card { grid-column: 1 / -1; }
+  .card-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 440px) {
+  .post-grid, .card-grid, .form-grid { grid-template-columns: 1fr; }
+  .post-image { aspect-ratio: 2; }
+  .post-body { padding: 21px; }
+  .post-title { font-size: 21px; }
+  .section-count { font-size: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .post-card:hover { transform: none; }
+}

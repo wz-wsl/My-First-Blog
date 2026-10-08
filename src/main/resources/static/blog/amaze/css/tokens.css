@@ -1,0 +1,30 @@
+/* 设计变量：主题的颜色、字体、圆角、阴影都在这里调整 */
+:root {
+  /* 底色与文字 */
+  --paper: #f7f8f2;
+  --surface: #fff;
+  --ink: #263a32;
+  --muted: #788078;
+  --faint: #a4ae9c;
+
+  /* 强调色（墨绿系，由深到浅） */
+  --green: #456751;
+  --green-mid: #8ea47c;
+  --green-light: #c1ceb4;
+  --soft: #eaf0e6;
+  --tint: #f0f4ea;
+
+  /* 线条 */
+  --line: #e3e7dd;
+  --line-soft: #eef0ea;
+
+  /* 字体 */
+  --serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", SimSun, serif;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  --mono: Consolas, "SFMono-Regular", Menlo, monospace;
+
+  /* 形状 */
+  --radius: 9px;
+  --radius-sm: 5px;
+  --shadow: 0 12px 24px rgba(38, 58, 50, .06);
+}

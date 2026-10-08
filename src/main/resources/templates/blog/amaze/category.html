@@ -1,33 +1,45 @@
 <!DOCTYPE html>
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="blog/amaze/header::head-fragment"></head>
-<body id="blog">
-<div th:replace="blog/amaze/header::nav-fragment"></div>
-<div th:replace="blog/amaze/header::header-fragment"></div>
-<div class="am-g am-g-fixed blog-fixed">
-    <main class="am-u-lg-8 am-u-sm-12 articles-list">
-        <h2>文章分类</h2>
-        <div class="tags" th:if="${not #lists.isEmpty(categories)}">
-            <a rel="tag" th:each="category : ${categories}"
-               th:href="@{'/category/' + ${category.categoryName}}"
-               th:text="${category.categoryName}"></a>
-        </div>
-        <p th:if="${#lists.isEmpty(categories)}">暂无分类</p>
-    </main>
-    <aside class="am-u-lg-4 am-u-sm-12 sidebar-container">
-        <section>
-            <div class="sidebar-header">
-                <span class="sidebar-header-title">热门标签</span>
+<head th:replace="~{blog/amaze/layout :: head(${pageName})}"></head>
+<body>
+<th:block th:replace="~{blog/amaze/layout :: nav('categories')}"></th:block>
+
+<main id="main">
+    <section class="site-width page-banner">
+        <span class="eyebrow">CATEGORIES</span>
+        <h1>文章分类</h1>
+        <p th:text="|共 ${#lists.size(categories)} 个分类|">共 0 个分类</p>
+    </section>
+
+    <div class="site-width wide-content">
+        <section class="content-section">
+            <div class="card-grid" th:unless="${#lists.isEmpty(categories)}">
+                <a class="info-card" th:each="category : ${categories}"
+                   th:href="@{/category/{name}(name=${category.categoryName})}">
+                    <img th:unless="${#strings.isEmpty(category.categoryIcon)}" th:src="@{${category.categoryIcon}}" alt="">
+                    <h3 th:text="${category.categoryName}">分类名</h3>
+                    <span class="card-arrow">查看文章 →</span>
+                </a>
             </div>
-            <div class="tags" th:if="${not #lists.isEmpty(hotTags)}">
-                <a rel="tag" th:each="hotTag : ${hotTags}"
-                   th:href="@{'/tag/' + ${hotTag.tagName}}"
-                   th:text="${hotTag.tagName} + '(' + ${hotTag.tagCount} + ')'"></a>
+            <div class="empty-state" th:if="${#lists.isEmpty(categories)}">
+                <div class="empty-symbol">✦</div>
+                <h2>暂无分类</h2>
             </div>
-            <p th:if="${#lists.isEmpty(hotTags)}">暂无标签</p>
         </section>
-    </aside>
-</div>
-<footer th:replace="blog/amaze/footer::footer-fragment"></footer>
+
+        <section class="content-section" th:unless="${#lists.isEmpty(hotTags)}">
+            <div class="section-heading">
+                <h2>热门标签<small>TAGS</small></h2>
+            </div>
+            <div class="tag-list">
+                <a th:each="tag : ${hotTags}" th:href="@{/tag/{name}(name=${tag.tagName})}">
+                    <th:block th:text="${tag.tagName}">标签</th:block><small th:text="${tag.tagCount}">0</small>
+                </a>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer th:replace="~{blog/amaze/layout :: footer}"></footer>
 </body>
 </html>

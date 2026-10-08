@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<!-- 公共布局片段：head(title)、nav(active)、footer -->
+
+<head th:fragment="head(title)">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="|${title} - ${configurations.get('websiteName')}|">页面标题</title>
+    <meta name="description" th:content="${configurations.get('websiteDescription')}">
+    <link rel="shortcut icon" th:href="@{${configurations.get('websiteIcon')}}">
+    <link rel="stylesheet" th:href="@{/blog/amaze/css/main.css}">
+    <script defer th:src="@{/blog/amaze/js/main.js}"></script>
+</head>
+
+<body>
+
+<!-- active 取值：home / categories / link / about，用于高亮当前菜单 -->
+<th:block th:fragment="nav(active)">
+    <a class="skip-link" href="#main">跳到正文</a>
+    <nav class="site-nav">
+        <div class="site-width nav-inner">
+            <a class="brand" th:href="@{/}">
+                <span class="brand-mark" th:text="${#strings.substring(configurations.get('websiteName'), 0, 1)}">记</span>
+                <span class="brand-name" th:text="${configurations.get('websiteName')}">站点名</span>
+                <span class="brand-caption">ESSAYS · NOTES</span>
+            </a>
+            <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links">菜单</button>
+            <div class="nav-links" id="nav-links">
+                <a th:href="@{/}" th:classappend="${active == 'home'} ? 'current'">首页</a>
+                <a th:href="@{/categories}" th:classappend="${active == 'categories'} ? 'current'">分类</a>
+                <a th:href="@{/link}" th:classappend="${active == 'link'} ? 'current'">友链</a>
+                <a th:href="@{/about}" th:classappend="${active == 'about'} ? 'current'">关于</a>
+            </div>
+        </div>
+    </nav>
+</th:block>
+
+<footer class="site-footer" th:fragment="footer">
+    <div class="site-width footer-inner">
+        <div>
+            <span class="footer-brand" th:text="${configurations.get('websiteName')}">站点名</span>
+            <span th:text="${configurations.get('footerAbout')}">your personal blog.</span>
+        </div>
+        <div class="footer-meta">
+            <span th:text="${configurations.get('footerCopyRight')}">@2018 十三</span>
+            <a th:unless="${#strings.isEmpty(configurations.get('footerICP'))}"
+               href="https://beian.miit.gov.cn" target="_blank" rel="noopener"
+               th:text="${configurations.get('footerICP')}">ICP 备案号</a>
+            <span>Powered by
+                <a th:href="${configurations.get('footerPoweredByURL')}" target="_blank" rel="noopener"
+                   th:text="${configurations.get('footerPoweredBy')}">personal blog</a>
+            </span>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

@@ -1,14 +1,54 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="blog/amaze/header::head-fragment"></head>
-<body id="blog">
-<div th:replace="blog/amaze/header::nav-fragment"></div>
-<div th:replace="blog/amaze/header::header-fragment"></div>
-<div class="am-g am-g-fixed blog-fixed">
-    <div th:replace="blog/amaze/blog-list::blog-list-fragment"></div>
-    <div th:replace="blog/amaze/side::side-fragment"></div>
-</div>
-<footer th:replace="blog/amaze/footer::footer-fragment"></footer>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{blog/amaze/layout :: head(${pageName})}"></head>
+<body>
+<th:block th:replace="~{blog/amaze/layout :: nav('home')}"></th:block>
+
+<main id="main">
+    <section class="site-width hero">
+        <div>
+            <span class="eyebrow">WELCOME</span>
+            <h1>我不怕千万人阻挡，<br><em>只怕自己投降</em></h1>
+            <p class="hero-description" th:text="${configurations.get('websiteDescription')}">站点描述</p>
+            <a class="text-link" href="#latest">阅读最新文章 <span>→</span></a>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+            <div class="art-orbit"></div>
+            <div class="notebook">
+                <span class="notebook-title">手记</span>
+                <small>NOTES</small>
+            </div>
+            <span class="art-star">✦</span>
+            <span class="art-note">今天也写一点点</span>
+        </div>
+    </section>
+
+    <div class="site-width blog-layout">
+        <section id="latest">
+            <div class="section-heading">
+                <h2>最新文章<small>LATEST ARTICLES</small></h2>
+                <span class="section-count" th:if="${blogPageResult != null}"
+                      th:text="|共 ${blogPageResult.totalCount} 篇|">共 0 篇</span>
+            </div>
+
+            <div class="post-grid" th:unless="${blogPageResult == null or #lists.isEmpty(blogPageResult.list)}">
+                <th:block th:each="blog : ${blogPageResult.list}">
+                    <article th:replace="~{blog/amaze/fragments/post-card :: post-card(${blog})}"></article>
+                </th:block>
+            </div>
+            <div class="empty-state" th:if="${blogPageResult == null or #lists.isEmpty(blogPageResult.list)}">
+                <div class="empty-symbol">✦</div>
+                <h2>还没有文章</h2>
+                <p>第一篇正在路上。</p>
+            </div>
+
+            <nav th:replace="~{blog/amaze/fragments/pagination :: pagination(${blogPageResult}, '/page/', '')}"></nav>
+        </section>
+
+        <aside th:replace="~{blog/amaze/fragments/sidebar :: sidebar}"></aside>
+    </div>
+</main>
+
+<footer th:replace="~{blog/amaze/layout :: footer}"></footer>
 </body>
-<script th:src="@{/blog/plugins/search/search.js}"></script>
 </html>

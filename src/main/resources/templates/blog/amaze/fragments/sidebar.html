@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- 侧栏：作者卡片、搜索、热门标签、最新发布、点击最多 -->
+<aside class="sidebar" th:fragment="sidebar">
+    <div class="author-card">
+        <div class="author-top">
+            <img class="author-avatar" th:src="@{${configurations.get('yourAvatar')}}" alt="">
+            <div>
+                <h3 th:text="${configurations.get('yourName')}">博主</h3>
+                <small>AUTHOR</small>
+            </div>
+        </div>
+        <p th:unless="${#strings.isEmpty(configurations.get('yourEmail'))}">
+            联系我：<a th:href="'mailto:' + ${configurations.get('yourEmail')}"
+                     th:text="${configurations.get('yourEmail')}">邮箱</a>
+        </p>
+        <a class="text-link" th:href="@{/about}">关于我 <span>→</span></a>
+    </div>
+
+    <section>
+        <h2 class="sidebar-title">搜索文章<small>SEARCH</small></h2>
+        <form class="search-form" role="search" th:action="@{/search/}">
+            <input type="search" name="keyword" placeholder="输入关键字回车搜索" aria-label="搜索关键字"
+                   th:value="${pageUrl == 'search'} ? ${keyword}">
+            <button type="submit" aria-label="搜索">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7"/>
+                    <path d="m20 20-3.5-3.5"/>
+                </svg>
+            </button>
+        </form>
+    </section>
+
+    <section th:unless="${#lists.isEmpty(hotTags)}">
+        <h2 class="sidebar-title">热门标签<small>TAGS</small></h2>
+        <div class="tag-list">
+            <a th:each="tag : ${hotTags}" th:href="@{/tag/{name}(name=${tag.tagName})}">
+                <th:block th:text="${tag.tagName}">标签</th:block><small th:text="${tag.tagCount}">0</small>
+            </a>
+        </div>
+    </section>
+
+    <section th:unless="${#lists.isEmpty(newBlogs)}">
+        <h2 class="sidebar-title">最新发布<small>NEWEST</small></h2>
+        <ol class="reading-list">
+            <li th:each="blog : ${newBlogs}">
+                <a th:href="@{/blog/{id}(id=${blog.blogId})}" th:text="${blog.blogTitle}">文章标题</a>
+            </li>
+        </ol>
+    </section>
+
+    <section th:unless="${#lists.isEmpty(hotBlogs)}">
+        <h2 class="sidebar-title">点击最多<small>POPULAR</small></h2>
+        <ol class="reading-list">
+            <li th:each="blog : ${hotBlogs}">
+                <a th:href="@{/blog/{id}(id=${blog.blogId})}" th:text="${blog.blogTitle}">文章标题</a>
+            </li>
+        </ol>
+    </section>
+</aside>
+
+</body>
+</html>

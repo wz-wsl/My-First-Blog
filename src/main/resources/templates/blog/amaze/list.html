@@ -1,14 +1,37 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="blog/amaze/header::head-fragment"></head>
-<body id="blog">
-<div th:replace="blog/amaze/header::nav-fragment"></div>
-<div th:replace="blog/amaze/header::header-fragment"></div>
-<div class="am-g am-g-fixed blog-fixed">
-    <div th:replace="blog/amaze/keyword-list::keyword-list-fragment"></div>
-    <div th:replace="blog/amaze/side::side-fragment"></div>
-</div>
-<footer th:replace="blog/amaze/footer::footer-fragment"></footer>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<!-- 标签、分类、搜索的文章列表页，靠 pageUrl（tag / category / search）和 keyword 区分 -->
+<head th:replace="~{blog/amaze/layout :: head(|${pageName} · ${keyword}|)}"></head>
+<body>
+<th:block th:replace="~{blog/amaze/layout :: nav(${pageUrl == 'category'} ? 'categories' : '')}"></th:block>
+
+<main id="main">
+    <section class="site-width page-banner">
+        <span class="eyebrow" th:text="${pageUrl == 'tag'} ? 'TAG' : (${pageUrl == 'category'} ? 'CATEGORY' : 'SEARCH')">TAG</span>
+        <h1 th:text="|${pageName} · ${keyword}|">标签 · Java</h1>
+        <p th:if="${blogPageResult != null}" th:text="|共 ${blogPageResult.totalCount} 篇文章|">共 0 篇文章</p>
+    </section>
+
+    <div class="site-width blog-layout">
+        <section>
+            <div class="post-grid" th:unless="${blogPageResult == null or #lists.isEmpty(blogPageResult.list)}">
+                <th:block th:each="blog : ${blogPageResult.list}">
+                    <article th:replace="~{blog/amaze/fragments/post-card :: post-card(${blog})}"></article>
+                </th:block>
+            </div>
+            <div class="empty-state" th:if="${blogPageResult == null or #lists.isEmpty(blogPageResult.list)}">
+                <div class="empty-symbol">✦</div>
+                <h2>没有找到相关文章</h2>
+                <p>换个关键字试试，或者回到 <a th:href="@{/}">首页</a> 看看。</p>
+            </div>
+
+            <nav th:replace="~{blog/amaze/fragments/pagination :: pagination(${blogPageResult}, ${'/' + pageUrl + '/' + #uris.escapePathSegment(keyword) + '/'}, '')}"></nav>
+        </section>
+
+        <aside th:replace="~{blog/amaze/fragments/sidebar :: sidebar}"></aside>
+    </div>
+</main>
+
+<footer th:replace="~{blog/amaze/layout :: footer}"></footer>
 </body>
-<script th:src="@{/blog/plugins/search/search.js}"></script>
 </html>

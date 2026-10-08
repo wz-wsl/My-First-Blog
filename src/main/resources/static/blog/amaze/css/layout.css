@@ -1,0 +1,52 @@
+/* 页面骨架：容器宽度、导航、主体两栏、页脚 */
+.site-width { width: min(1180px, calc(100% - 80px)); margin-inline: auto; }
+.article-width { width: min(800px, calc(100% - 80px)); margin-inline: auto; }
+.wide-content { padding-block: 36px 65px; }
+
+/* 导航 */
+.site-nav { position: sticky; top: 0; z-index: 30; background: rgba(247, 248, 242, .96); border-bottom: 1px solid var(--line); }
+.nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 84px; }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand-mark { display: grid; place-items: center; flex-shrink: 0; width: 36px; height: 40px; background: var(--ink); color: #fff; border-radius: 3px 10px 10px 3px; font: 23px var(--serif); box-shadow: inset 4px 0 rgba(255, 255, 255, .15); }
+.brand-name { font-size: 19px; font-weight: 700; letter-spacing: .04em; overflow-wrap: anywhere; }
+.brand-caption { margin-left: 6px; color: var(--muted); font-size: 10px; letter-spacing: .18em; }
+.nav-links { display: flex; align-items: center; gap: 30px; }
+.nav-links a { padding: 8px 0; color: var(--muted); font-size: 14px; }
+.nav-links a:hover { color: var(--ink); }
+.nav-links a.current { position: relative; color: var(--ink); font-weight: 600; }
+.nav-links a.current::after { content: ""; position: absolute; bottom: 0; left: calc(50% - 2px); width: 4px; height: 4px; background: var(--green); border-radius: 50%; }
+.nav-toggle { display: none; padding: 7px 12px; background: transparent; border: 1px solid var(--line); border-radius: 6px; }
+
+/* 主体：文章列表 + 侧栏 */
+.blog-layout { display: grid; grid-template-columns: minmax(0, 1fr) 282px; align-items: start; gap: 44px; padding-block: 38px 65px; }
+.sidebar { display: grid; gap: 25px; padding-top: 2px; }
+
+/* 页脚 */
+.site-footer { padding-block: 25px; border-top: 1px solid var(--line); }
+.footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; color: var(--muted); font-size: 11px; }
+.footer-brand { margin-right: 14px; color: var(--ink); font: 16px var(--serif); }
+.footer-meta { display: flex; flex-wrap: wrap; gap: 18px; }
+.footer-meta a:hover { text-decoration: underline; }
+
+@media (max-width: 1000px) {
+  .site-width { width: calc(100% - 48px); }
+  .brand-caption { display: none; }
+  .nav-links { gap: 22px; }
+  .blog-layout { grid-template-columns: minmax(0, 1fr) 245px; gap: 27px; }
+}
+
+@media (max-width: 760px) {
+  .site-width, .article-width { width: calc(100% - 36px); }
+  .nav-inner { flex-wrap: wrap; gap: 0; min-height: 70px; }
+  .brand-name { font-size: 17px; }
+  .nav-toggle { display: block; }
+  .nav-links { display: none; flex-wrap: wrap; gap: 18px; width: 100%; padding: 14px 0 18px; }
+  .nav-links.is-open { display: flex; }
+  .blog-layout { grid-template-columns: 1fr; padding-block: 28px 40px; }
+  .sidebar { grid-template-columns: 1fr 1fr; gap: 24px; }
+  .footer-inner { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 440px) {
+  .sidebar { grid-template-columns: 1fr; }
+}

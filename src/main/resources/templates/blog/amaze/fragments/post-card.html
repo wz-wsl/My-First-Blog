@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- 文章卡片，blog 为 BlogListVO -->
+<article class="post-card" th:fragment="post-card(blog)">
+    <a class="post-image" th:href="@{/blog/{id}(id=${blog.blogId})}" tabindex="-1" aria-hidden="true">
+        <img th:unless="${#strings.isEmpty(blog.blogCoverImage)}" th:src="@{${blog.blogCoverImage}}" alt="" loading="lazy">
+    </a>
+    <div class="post-body">
+        <a class="post-category" th:href="@{/category/{name}(name=${blog.blogCategoryName})}"
+           th:text="${blog.blogCategoryName}">分类</a>
+        <h3 class="post-title">
+            <a th:href="@{/blog/{id}(id=${blog.blogId})}" th:text="${blog.blogTitle}">文章标题</a>
+        </h3>
+        <div class="post-meta">
+            <time th:text="${#dates.format(blog.createTime, 'yyyy-MM-dd')}">2026-01-01</time>
+            <a class="arrow" th:href="@{/blog/{id}(id=${blog.blogId})}" aria-label="阅读全文">→</a>
+        </div>
+    </div>
+</article>
+
+</body>
+</html>

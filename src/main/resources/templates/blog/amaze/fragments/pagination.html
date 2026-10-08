@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  分页条，只有一页时不显示。
+  page：PageResult；链接为 base + 页码 + suffix，
+  例如 base='/page/'、suffix='' 或 base='/blog/1?commentPage='、suffix='#comments'
+-->
+<nav class="pagination" aria-label="分页"
+     th:fragment="pagination(page, base, suffix)"
+     th:if="${page != null and page.totalPage > 1}"
+     th:with="curr=${page.currPage}, total=${page.totalPage},
+              start=${curr - 2 > 1 ? curr - 2 : 1}, end=${curr + 2 < total ? curr + 2 : total}">
+    <a th:if="${curr > 1}" th:href="@{${base + (curr - 1) + suffix}}" aria-label="上一页">«</a>
+    <span th:unless="${curr > 1}" class="disabled" aria-hidden="true">«</span>
+
+    <th:block th:each="n : ${#numbers.sequence(start, end)}">
+        <span th:if="${n == curr}" class="current" aria-current="page" th:text="${n}">1</span>
+        <a th:unless="${n == curr}" th:href="@{${base + n + suffix}}" th:text="${n}">2</a>
+    </th:block>
+
+    <a th:if="${curr < total}" th:href="@{${base + (curr + 1) + suffix}}" aria-label="下一页">»</a>
+    <span th:unless="${curr < total}" class="disabled" aria-hidden="true">»</span>
+</nav>
+
+</body>
+</html>
