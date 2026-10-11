@@ -64,8 +64,9 @@ public class ConfigurationController {
         if (StringUtils.hasText(yourName)) {
             updateResult += configService.updateConfig("yourName", yourName);
         }
-        if (StringUtils.hasText(yourEmail)) {
-            updateResult += configService.updateConfig("yourEmail", yourEmail);
+        // 未提交字段时保持原值；明确提交空字符串时允许清空可选联系方式。
+        if (yourEmail != null) {
+            updateResult += configService.updateConfig("yourEmail", yourEmail.trim());
         }
         return ResultGenerator.genSuccessResult(updateResult > 0);
     }
@@ -81,8 +82,8 @@ public class ConfigurationController {
         if (StringUtils.hasText(footerAbout)) {
             updateResult += configService.updateConfig("footerAbout", footerAbout);
         }
-        if (StringUtils.hasText(footerICP)) {
-            updateResult += configService.updateConfig("footerICP", footerICP);
+        if (footerICP != null) {
+            updateResult += configService.updateConfig("footerICP", footerICP.trim());
         }
         if (StringUtils.hasText(footerCopyRight)) {
             updateResult += configService.updateConfig("footerCopyRight", footerCopyRight);

@@ -64,17 +64,12 @@ public class ConfigServiceImpl implements ConfigService {
             if ("yourAvatar".equals(config.getKey()) && !StringUtils.hasText(config.getValue())) {
                 config.setValue(yourAvatar);
             }
-            if ("yourEmail".equals(config.getKey()) && !StringUtils.hasText(config.getValue())) {
-                config.setValue(yourEmail);
-            }
+            // 邮箱和备案号是可选项：空值表示不展示，不回填原作者的示例信息。
             if ("yourName".equals(config.getKey()) && !StringUtils.hasText(config.getValue())) {
                 config.setValue(yourName);
             }
             if ("footerAbout".equals(config.getKey()) && !StringUtils.hasText(config.getValue())) {
                 config.setValue(footerAbout);
-            }
-            if ("footerICP".equals(config.getKey()) && !StringUtils.hasText(config.getValue())) {
-                config.setValue(footerICP);
             }
             if ("footerCopyRight".equals(config.getKey()) && !StringUtils.hasText(config.getValue())) {
                 config.setValue(footerCopyRight);
