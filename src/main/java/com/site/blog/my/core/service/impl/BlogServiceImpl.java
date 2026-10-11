@@ -9,6 +9,7 @@ import com.site.blog.my.core.entity.BlogCategory;
 import com.site.blog.my.core.entity.BlogTag;
 import com.site.blog.my.core.entity.BlogTagRelation;
 import com.site.blog.my.core.service.BlogService;
+import com.site.blog.my.core.Exception.BlogWriteException;
 import com.site.blog.my.core.util.MarkDownUtil;
 import com.site.blog.my.core.util.PageQueryUtil;
 import com.site.blog.my.core.util.PageResult;
@@ -56,43 +57,49 @@ public class BlogServiceImpl implements BlogService {
             return "标签数量限制为6";
         }
         //保存文章
-        if (blogMapper.insertSelective(blog) > 0) {
-            //新增的tag对象
-            List<BlogTag> tagListForInsert = new ArrayList<>();
-            //所有的tag对象，用于建立关系数据
-            List<BlogTag> allTagsList = new ArrayList<>();
-            for (int i = 0; i < tags.length; i++) {
-                BlogTag tag = tagMapper.selectByTagName(tags[i]);
-                if (tag == null) {
-                    //不存在就新增
-                    BlogTag tempTag = new BlogTag();
-                    tempTag.setTagName(tags[i]);
-                    tagListForInsert.add(tempTag);
-                } else {
-                    allTagsList.add(tag);
-                }
-            }
-            //新增标签数据并修改分类排序值
-            if (!CollectionUtils.isEmpty(tagListForInsert)) {
-                tagMapper.batchInsertBlogTag(tagListForInsert);
-            }
-            if (blogCategory != null) {
-                categoryMapper.updateByPrimaryKeySelective(blogCategory);
-            }
-            List<BlogTagRelation> blogTagRelations = new ArrayList<>();
-            //新增关系数据
-            allTagsList.addAll(tagListForInsert);
-            for (BlogTag tag : allTagsList) {
-                BlogTagRelation blogTagRelation = new BlogTagRelation();
-                blogTagRelation.setBlogId(blog.getBlogId());
-                blogTagRelation.setTagId(tag.getTagId());
-                blogTagRelations.add(blogTagRelation);
-            }
-            if (blogTagRelationMapper.batchInsert(blogTagRelations) > 0) {
-                return "success";
+        if (blogMapper.insertSelective(blog) != 1) {
+            throw new BlogWriteException("文章保存失败");
+        }
+        if (blog.getBlogId() == null) {
+            throw new BlogWriteException("未取得文章编号");
+        }
+        //新增的tag对象
+        List<BlogTag> tagListForInsert = new ArrayList<>();
+        //所有的tag对象，用于建立关系数据
+        List<BlogTag> allTagsList = new ArrayList<>();
+        for (int i = 0; i < tags.length; i++) {
+            BlogTag tag = tagMapper.selectByTagName(tags[i]);
+            if (tag == null) {
+                //不存在就新增
+                BlogTag tempTag = new BlogTag();
+                tempTag.setTagName(tags[i]);
+                tagListForInsert.add(tempTag);
+            } else {
+                allTagsList.add(tag);
             }
         }
-        return "保存失败";
+        //新增标签数据并修改分类排序值
+        if (!CollectionUtils.isEmpty(tagListForInsert)) {
+            saveNewTags(tagListForInsert);
+        }
+        if (blogCategory != null) {
+            if (categoryMapper.updateByPrimaryKeySelective(blogCategory) != 1) {
+                throw new BlogWriteException("分类更新失败");
+            }
+        }
+        List<BlogTagRelation> blogTagRelations = new ArrayList<>();
+        //新增关系数据
+        allTagsList.addAll(tagListForInsert);
+        for (BlogTag tag : allTagsList) {
+            BlogTagRelation blogTagRelation = new BlogTagRelation();
+            blogTagRelation.setBlogId(blog.getBlogId());
+            blogTagRelation.setTagId(tag.getTagId());
+            blogTagRelations.add(blogTagRelation);
+        }
+        if (blogTagRelationMapper.batchInsert(blogTagRelations) != blogTagRelations.size()) {
+            throw new BlogWriteException("文章标签关系保存不完整");
+        }
+        return "success";
     }
 
     @Override
@@ -123,7 +130,7 @@ public class BlogServiceImpl implements BlogService {
     public String updateBlog(Blog blog) {
         Blog blogForUpdate = blogMapper.selectByPrimaryKey(blog.getBlogId());
         if (blogForUpdate == null) {
-            return "数据不存在";
+            throw new BlogWriteException("数据不存在");
         }
         blogForUpdate.setBlogTitle(blog.getBlogTitle());
         blogForUpdate.setBlogSubUrl(blog.getBlogSubUrl());
@@ -145,7 +152,7 @@ public class BlogServiceImpl implements BlogService {
         //处理标签数据
         String[] tags = blog.getBlogTags().split(",");
         if (tags.length > 6) {
-            return "标签数量限制为6";
+            throw new BlogWriteException("标签数量限制为6");
         }
         blogForUpdate.setBlogTags(blog.getBlogTags());
         //新增的tag对象
@@ -165,7 +172,7 @@ public class BlogServiceImpl implements BlogService {
         }
         //新增标签数据不为空->新增标签数据
         if (!CollectionUtils.isEmpty(tagListForInsert)) {
-            tagMapper.batchInsertBlogTag(tagListForInsert);
+            saveNewTags(tagListForInsert);
         }
         List<BlogTagRelation> blogTagRelations = new ArrayList<>();
         //新增关系数据
@@ -178,14 +185,26 @@ public class BlogServiceImpl implements BlogService {
         }
         //修改blog信息->修改分类排序值->删除原关系数据->保存新的关系数据
         if (blogCategory != null) {
-            categoryMapper.updateByPrimaryKeySelective(blogCategory);
+            if (categoryMapper.updateByPrimaryKeySelective(blogCategory) != 1) {
+                throw new BlogWriteException("分类更新失败");
+            }
         }
+        // 没有旧关系时删除 0 行也是正常结果；SQL 异常向外传播，由事务回滚。
         blogTagRelationMapper.deleteByBlogId(blog.getBlogId());
-        blogTagRelationMapper.batchInsert(blogTagRelations);
-        if (blogMapper.updateByPrimaryKeySelective(blogForUpdate) > 0) {
-            return "success";
+        if (blogTagRelationMapper.batchInsert(blogTagRelations) != blogTagRelations.size()) {
+            throw new BlogWriteException("文章标签关系保存不完整");
         }
-        return "修改失败";
+        if (blogMapper.updateByPrimaryKeySelective(blogForUpdate) != 1) {
+            throw new BlogWriteException("文章修改失败");
+        }
+        return "success";
+    }
+
+    private void saveNewTags(List<BlogTag> tags) {
+        if (tagMapper.batchInsertBlogTag(tags) != tags.size()
+                || tags.stream().anyMatch(tag -> tag.getTagId() == null)) {
+            throw new BlogWriteException("标签保存不完整");
+        }
     }
 
     @Override

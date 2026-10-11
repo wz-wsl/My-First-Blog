@@ -266,9 +266,6 @@
             <if test="updateTime != null">
                 update_time = #{updateTime,jdbcType=TIMESTAMP},
             </if>
-            <if test="blogContent != null">
-                blog_content = #{blogContent,jdbcType=LONGVARCHAR},
-            </if>
         </set>
         where blog_id = #{blogId,jdbcType=BIGINT}
     </update>

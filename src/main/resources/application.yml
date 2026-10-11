@@ -1,0 +1,16 @@
+# 站点默认值：数据库中已有配置但值为空时使用。
+# 邮箱和备案号允许留空，读取数据库时不回填。
+blog:
+  defaults:
+    website-name: "慢写手记"
+    website-description: "记录开发中的小问题，也记录生活里的小发现。把复杂的事情讲清楚，把值得留下的想法慢慢写下来。"
+    website-logo: "/admin/dist/img/logo2.png"
+    website-icon: "/admin/dist/img/favicon.png"
+    your-avatar: "/admin/dist/img/avatar.png"
+    your-email: ""
+    your-name: "AshenOne"
+    footer-about: "写代码，也写生活。保持好奇，慢慢积累。"
+    footer-icp: ""
+    footer-copy-right: "© 2026 慢写手记"
+    footer-powered-by: "My Blog"
+    footer-powered-by-url: "https://github.com/ZHENFENG13/My-Blog"

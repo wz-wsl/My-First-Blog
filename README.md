@@ -1,166 +1,201 @@
-# My Blog
+# 慢写手记 · My Blog
 
-本地项目已升级到 Spring Boot 4.0.8、MyBatis Spring Boot Starter 4.0.1，使用 Jakarta Servlet API。
+一个基于 Spring Boot、MyBatis 和 Thymeleaf 的个人博客学习项目，包含博客前台和内容管理后台。当前站点以“慢写手记”为名，用来记录开发笔记、学习过程和生活中的想法。
 
-构建和运行需要 JDK 17 或更高版本，当前已在 JDK 25 上验证。IDEA 的项目 SDK、Maven 使用的 JDK 和运行配置应保持一致。
+**本项目基于 [十三（ZHENFENG13）的 My-Blog](https://github.com/ZHENFENG13/My-Blog) 修改。** 博客的基础功能和项目结构来自原项目，我在此基础上进行依赖升级、界面调整、业务修复和测试补充。这个仓库用于个人学习与练习，记录阅读源码、理解功能和逐步改造的过程。
+
+![慢写手记首页](static-files/personal-blog.png)
+
+## 项目来源与学习目的
+
+- 原项目：[ZHENFENG13/My-Blog](https://github.com/ZHENFENG13/My-Blog)。感谢原作者十三提供源码和实现思路。
+- 当前项目：保留原项目的博客业务，在学习过程中逐步修改，使用“慢写手记”作为当前站点名称。
+- 学习目的：理解一个 Spring Boot 项目从接收请求、处理业务、操作数据库，到渲染页面的完整流程，并通过实际修改和测试加深理解。
+
+这里的改动建立在原项目之上，不代表全部代码由我独立完成。项目仍会随着学习继续完善。
+
+## 项目功能
+
+| 部分 | 功能 |
+| --- | --- |
+| 博客前台 | 首页与分页、文章详情、分类与标签、文章搜索、Markdown 内容展示、代码高亮、评论、友情链接、关于页面 |
+| 管理后台 | 验证码登录、数据概览、文章编辑与发布、草稿、图片上传、分类与标签管理、评论审核与回复、友情链接管理、站点配置、个人信息修改 |
+
+页面由 Thymeleaf 在服务端渲染，部分后台操作通过 JavaScript 请求接口完成。
+
+## 当前改动
+
+- **依赖与框架升级**：升级 Spring Boot 和 MyBatis，适配 Jakarta Servlet API，调整构建配置与 Lombok 注解处理。
+- **前台与后台界面调整**：删除了其余主题，只保留 `amaze` 前台主题，调整布局、样式和页面组件，更新后台页面及交互。
+- **事务处理修复**：在文章保存、文章更新、分类更新与分类删除中检查关键写入结果，业务失败时抛出异常，使事务能够回滚；通过全局异常处理返回原有 `Result` 格式。
+- **站点默认配置迁移**：将原先写在 `ConfigServiceImpl` 中的默认值移到 `application.yml`，通过配置对象读取。
+- **回归测试补充**：覆盖事务提交与回滚、异常响应、站点默认配置，以及框架升级后的页面与接口行为。
+
+## 技术栈
+
+| 技术 | 当前用途或版本 |
+| --- | --- |
+| Java | 编译目标为 Java 17，当前已在 JDK 25 上验证构建与运行 |
+| Spring Boot | 4.0.8，应用配置与启动 |
+| Spring MVC | 请求处理、表单绑定与接口响应 |
+| Thymeleaf | 服务端页面模板 |
+| MyBatis Spring Boot Starter | 4.0.1，数据库访问与 SQL 映射 |
+| MySQL | 保存文章、分类、标签、评论、站点配置等数据 |
+| HikariCP | 数据库连接池 |
+| CommonMark | Markdown 内容解析 |
+| Hutool Captcha | 登录与评论验证码 |
+| Maven | 依赖管理、测试和打包 |
+| H2、JUnit、Mockito | 自动化测试 |
+
+## 本地运行
+
+### 1. 准备环境
+
+需要 JDK 17 或更高版本、Maven，以及可连接的 MySQL 数据库。IDEA 的项目 SDK、Maven 使用的 JDK 和运行配置应保持一致。
+
+数据库快照使用了 `utf8mb4_0900_ai_ci` 排序规则，导入环境需要支持这一规则，例如 MySQL 8。
+
+### 2. 导入数据库
+
+数据库脚本位于 [static-files/my_blog_db.sql](static-files/my_blog_db.sql)，包含 8 张业务表的结构和当前数据。
+
+登录 MySQL 客户端后执行以下命令，路径按实际项目位置调整：
+
+```sql
+source D:/Program/My-Blog-master/static-files/my_blog_db.sql;
+```
+
+脚本会创建 `my_blog_db`（若不存在），并重建其中的业务表；导入已有数据库前，请先备份。管理员账号及密码哈希沿用导出时的数据，登录应使用对应的实际账号密码。
+
+SQL 只保存上传图片的引用路径，不包含上传文件。迁移现有站点时，还需要复制实际上传目录。快照内容与截图说明见 [static-files/README.md](static-files/README.md)。
+
+### 3. 修改连接和上传配置
+
+编辑 [application.properties](src/main/resources/application.properties)，按本机环境修改：
+
+```properties
+server.port=8080
+
+spring.datasource.url=jdbc:mysql://localhost:3306/my_blog_db?useUnicode=true&characterEncoding=utf8&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+spring.datasource.username=你的数据库用户名
+spring.datasource.password=你的数据库密码
+
+config.FILE_UPLOAD_DIC=D:/Program/my_blog_update/
+config.theme=amaze
+```
+
+上传目录需要提前创建，并允许应用写入。当前代码会拼接目录和文件名，因此目录末尾需要保留 `/`。当前项目只保留 `amaze` 主题，主题配置需要对应实际存在的模板与静态资源。
+
+### 4. 调整站点默认值
+
+站点默认值位于 [application.yml](src/main/resources/application.yml)，例如：
+
+```yaml
+blog:
+  defaults:
+    website-name: "慢写手记"
+    website-description: "记录开发中的小问题，也记录生活里的小发现。把复杂的事情讲清楚，把值得留下的想法慢慢写下来。"
+    your-name: "AshenOne"
+    footer-about: "写代码，也写生活。保持好奇，慢慢积累。"
+```
+
+后台保存的站点配置存放在数据库中。读取时优先使用数据库中的非空值；对于已有但内容为空的必填配置，使用 YAML 中的默认值。邮箱和备案号允许留空，缺少的数据库配置记录不会自动创建。
+
+修改 YAML 后需要重启应用；在后台修改站点配置不会改写 YAML 文件。
+
+### 5. 构建与启动
+
+在项目根目录执行：
 
 ```bash
 mvn clean verify
 java -jar target/my-blog-4.0.0-SNAPSHOT.jar
 ```
 
-启动前，在 `src/main/resources/application.properties` 中配置数据库和图片上传目录。默认服务地址为 `http://localhost:8080`。
+也可以在 IDE 中运行 `MyBlogApplication` 启动类。
 
-升级回归测试位于 `src/test/java/com/site/blog/my/core/FrameworkUpgradeTests.java`，覆盖模板渲染、登录拦截、JSON 日期格式、文章表单绑定、图片上传和访问、验证码生成及错误页。测试中的文章保存使用服务替身，上传文件写入临时目录，不修改真实博客内容。
+- 博客前台：<http://localhost:8080/>
+- 后台登录：<http://localhost:8080/admin/login>
 
-![personal-blog](static-files/personal-blog.png)
+如果修改了 `server.port`，访问地址也需要使用对应端口。
 
-**坚持不易，各位朋友如果觉得项目还不错的话可以给项目一个 star 吧，也是对我一直更新代码的一种鼓励啦，谢谢各位的支持。**
+## 项目结构
 
-![my-blog-info](static-files/my-blog-info.png)
+```text
+My-Blog-master/
+├── src/main/java/com/site/blog/my/core/
+│   ├── MyBlogApplication.java      # 启动入口
+│   ├── config/                    # 应用配置与站点默认值绑定
+│   ├── controller/                # 前台、后台与公共请求处理
+│   ├── service/                   # 业务接口与实现
+│   ├── dao/                       # MyBatis Mapper 接口
+│   ├── entity/                    # 数据实体
+│   ├── Exception/                 # 业务异常
+│   ├── GlobalExceptionHandler/    # 全局异常处理
+│   ├── interceptor/               # 后台登录拦截
+│   └── util/                      # 通用工具与返回结果
+├── src/main/resources/
+│   ├── mapper/                    # SQL 映射文件
+│   ├── templates/                 # 后台与博客页面模板
+│   ├── static/                    # 页面样式、脚本与图片
+│   ├── application.properties     # 数据库、端口与上传目录
+│   └── application.yml            # 站点默认值
+├── src/test/                      # Java 与 JavaScript 回归测试
+├── static-files/                  # 项目截图与数据库快照
+├── pom.xml                        # Maven 配置
+└── LICENSE                        # 许可证
+```
 
-下方为原仓库的历史版本分支，可用于学习和对照；本地升级版本以上方说明为准。
+## 可以从这里学习什么
 
-| 分支名称                                                    | Spring Boot Version |
-| ------------------------------------------------------------ | ------------------- |
-| [spring-boot-2.3.7](https://github.com/ZHENFENG13/My-Blog/tree/spring-boot-2.3.7) | 2.3.7-RELEASE       |
-| [main](https://github.com/ZHENFENG13/My-Blog)            | 2.7.5               |
-| [spring-boot-3.x](https://github.com/ZHENFENG13/My-Blog/tree/spring-boot-3.x) | 3.1.0       |
+1. **请求如何走完一条链路**：从 Controller 进入 Service，再通过 Mapper 和 SQL 访问数据库，最后返回页面或 JSON。
+2. **多表关系如何维护**：理解文章、分类、标签以及文章与标签关联表之间的关系，观察一次业务操作为什么需要更新多张表。
+3. **事务与异常如何配合**：比较正常提交、SQL 异常和写入结果不符合预期时的行为，理解 Service 抛出异常与全局异常处理各自的职责。
+4. **配置与页面如何协作**：观察数据库配置、YAML 默认值和 Thymeleaf 模板如何共同决定页面展示。
+5. **如何验证自己的修改**：阅读回归测试，通过提交与回滚后的数据结果、页面渲染和接口响应判断修改是否有效。
 
-- **你可以拿它作为博客模板，因为 My Blog 界面十分美观简洁，满足私人博客的一切要求；**
-- **你也可以把它作为 SpringBoot 技术栈的学习项目，My Blog也足够符合要求，且代码和功能完备；**
-- **博客前台仅保留 amaze 主题，页面模板和静态资源按目录组织，方便定制；**
-- **技术栈新颖且知识点丰富，学习后可以提升大家对于知识的理解和掌握，对于提升你的市场竞争力有一定的帮助。**
+可以先从首页查询或文章发布功能入手，沿着一次请求阅读代码，再尝试做一个小改动并验证结果。
 
-> 更多 Spring Boot 实战项目可以关注十三的另一个代码仓库 [spring-boot-projects](https://github.com/ZHENFENG13/spring-boot-projects)，该仓库中主要是 Spring Boot 的入门学习教程以及一些常用的 Spring Boot 实战项目教程，包括 Spring Boot 使用的各种示例代码，同时也包括一些实战项目的项目源码和效果展示，实战项目包括基本的 web 开发以及目前大家普遍使用的前后端分离实践项目等，后续会根据大家的反馈继续增加一些实战项目源码，摆脱各种 hello world 入门案例的束缚，真正的掌握 Spring Boot 开发。
+## 测试说明
 
-关注公众号：**程序员十三**，回复"勾搭"进群交流。
+执行 `mvn clean verify` 会运行 Java 自动化测试并完成打包。主要测试包括：
 
-![wx-gzh](https://newbee-mall.oss-cn-beijing.aliyuncs.com/wx-gzh/%E7%A8%8B%E5%BA%8F%E5%91%98%E5%8D%81%E4%B8%89-%E5%85%AC%E4%BC%97%E5%8F%B7.png)
+| 测试类 | 验证内容 |
+| --- | --- |
+| `BlogTransactionTests` | 文章保存与更新的提交、业务失败回滚和 SQL 异常回滚 |
+| `CategoryTransactionTests` | 分类更新与删除、多表数据一致性和回滚 |
+| `BlogWriteResponseTests` | 业务异常经过全局处理后的 JSON 返回格式 |
+| `ConfigDefaultsTests` | YAML 配置绑定、数据库值优先与默认值回填 |
+| `FrameworkUpgradeTests` | 模板渲染、登录拦截、表单绑定、图片上传、验证码等升级回归行为 |
 
-## 注意事项
+事务测试使用独立的 H2 测试数据库。前端交互回归测试可在安装 Node.js 后执行：
 
-- **数据库文件目录为```static-files/my_blog_db.sql```；**
-- **部署后你可以根据自己需求修改版权文案、logo 图片、备案记录等网站基础信息；**
-- **My Blog 后台管理系统的默认登陆账号为 admin 默认登陆密码为 123456；**
-- **layui 版本的 My-Blog，仓库地址 [My-Blog-layui](https://github.com/ZHENFENG13/My-Blog-layui) ，感兴趣的朋友也可以学习一下；**
-- **My Blog 还有一些不完善的地方，鄙人才疏学浅，望见谅；**
-- **有任何问题都可以反馈给我，我会尽量完善该项目。**
+```bash
+node --test src/test/js/ui-regressions.test.cjs
+```
 
-[![Build Status](https://travis-ci.org/ZHENFENG13/My-Blog.svg?branch=master)](https://travis-ci.org/ZHENFENG13/My-Blog)
-![Version 4.0.0](https://img.shields.io/badge/version-4.0.0-yellow.svg)
-[![License](https://img.shields.io/badge/license-apache-blue.svg)](https://github.com/ZHENFENG13/My-Blog/blob/master/LICENSE)
+## 界面预览
 
-## 项目演示
+以下图片来自当前项目的本地运行页面，更多图片见 [项目资料](static-files/README.md)。
 
-- [视频1：My-Blog博客项目简介](https://edu.csdn.net/course/play/29029/406882)
-- [视频2：My-Blog博客项目系统演示-1](https://edu.csdn.net/course/play/29029/405864)
-- [视频3：My-Blog博客项目系统演示-2](https://edu.csdn.net/course/play/29029/405865)
-- [视频4：博客项目预览](https://www.bilibili.com/video/av52551095)
+### 文章详情
 
-## 开发文档
+![文章详情](static-files/detail03.png)
 
-### 《SpringBoot + Mybatis + Thymeleaf 搭建美观实用的个人博客》(支付减免优惠券码 LSJdK3KT )
+### 后台概览
 
-[![lesson-03](https://newbee-mall.oss-cn-beijing.aliyuncs.com/poster/store/lesson-03.png)](https://www.shiyanlou.com/courses/1367)
+![后台概览](static-files/dashboard.png)
 
-- [**第01课：Spring Boot 搭建简洁实用的个人博客系统导读**](https://www.shiyanlou.com/courses/1367)
-- [第02课：快速构建 Spring Boot 应用](https://www.shiyanlou.com/courses/1367)
-- [第03课：Spring Boot 项目开发之web项目开发讲解](https://www.shiyanlou.com/courses/1367)
-- [第04课：Spring Boot 整合 Thymeleaf 模板引擎](https://www.shiyanlou.com/courses/1367)
-- [第05课：Spring Boot 处理文件上传及路径回显](https://www.shiyanlou.com/courses)
-- [第06课：Spring Boot 自动配置数据源及操作数据库](https://www.shiyanlou.com/courses/1367)
-- [第07课：Spring Boot 整合 MyBatis 操作数据库](https://www.shiyanlou.com/courses/1367)
-- [第08课：Mybatis-Generator 自动生成代码](https://www.shiyanlou.com/courses/1367)
-- [第09课：Spring Boot 中的事务处理](https://www.shiyanlou.com/courses/1367)
-- [第10课：Spring Boot 项目实践之 Ajax 技术使用教程](https://www.shiyanlou.com/courses/1367)
-- [第11课：Spring Boot 项目实践之  RESTful API 设计与实现](https://www.shiyanlou.com/courses/1367)
-- [第12课：Spring Boot 博客系统项目开发之分页功能实现](https://www.shiyanlou.com/courses/1367)
-- [第13课：Spring Boot 博客系统项目开发之验证码功能](https://www.shiyanlou.com/courses/1367)
-- [第14课：Spring Boot 博客系统项目开发之登录模块实现](https://www.shiyanlou.com/courses/1367)
-- [第15课：Spring Boot 博客系统项目开发之登陆拦截器](https://www.shiyanlou.com/courses/1367)
-- [第16课：Spring Boot 博客系统项目开发之分类功能实现](https://www.shiyanlou.com/courses/1367)
-- [第17课：Spring Boot 博客系统项目开发之标签功能实现](https://www.shiyanlou.com/courses/1367)
-- [第18课：Spring Boot 博客系统项目开发之文章编辑功能](https://www.shiyanlou.com/courses/1367)
-- [第19课：Spring Boot 博客系统项目开发之文章编辑完善](https://www.shiyanlou.com/courses/1367)
-- [第20课：Spring Boot 博客系统项目开发之文章模块实现](https://www.shiyanlou.com/courses/1367)
-- [第21课：Spring Boot 博客系统项目开发之友链模块实现](https://www.shiyanlou.com/courses/1367)
-- [第22课：Spring Boot 博客系统项目开发之网站首页制作](https://www.shiyanlou.com/courses/1367)
-- [第23课：Spring Boot 博客系统项目开发之分页及侧边栏制作](https://www.shiyanlou.com/courses/1367)
-- [第24课：Spring Boot 博客系统项目开发之搜索页面制作](https://www.shiyanlou.com/courses/1367)
-- [第25课：Spring Boot 博客系统项目开发之文章详情页制作](https://www.shiyanlou.com/courses/1367)
-- [第26课：Spring Boot 博客系统项目开发之错误页面制作](https://www.shiyanlou.com/courses/1367)
-- [第27课：Spring Boot 博客系统项目开发之评论功能实现](https://www.shiyanlou.com/courses/1367)
-- [第28课：Spring Boot 博客系统项目开发之项目打包部署](https://www.shiyanlou.com/courses/1367)
+### Markdown 编辑器
 
-## 联系作者
+![Markdown 编辑器](static-files/edit-content.png)
 
-> 大家有任何问题或者建议都可以在 [issues](https://github.com/ZHENFENG13/My-Blog/issues) 中反馈给我，我会慢慢完善这个项目。
+### 站点配置
 
-- 我的邮箱：2449207463@qq.com
-- QQ技术交流群：719099151 796794009 881582471
+![站点配置](static-files/config.png)
 
-> My-Blog 在 GitHub 和国内的码云都创建了代码仓库，如果有人访问 GitHub 比较慢的话，建议在 Gitee 上查看该项目，两个仓库会保持同步更新。
+## 致谢与许可证
 
-- [My-Blog in GitHub](https://github.com/ZHENFENG13/My-Blog)
-- [My-Blog in Gitee](https://gitee.com/zhenfeng13/My-Blog)
+感谢 [十三的 My-Blog](https://github.com/ZHENFENG13/My-Blog) 提供项目基础，也感谢项目使用的开源框架与组件。
 
-## 效果预览
-
-### 后台管理页面
-
-- 登录页
-
-	![login](static-files/login.png)
-
-- 后台首页
-
-	![dashboard](static-files/dashboard.png)
-
-- 文章管理
-
-	![blog-list](static-files/blog-list.png)
-
-- 文章编辑
-
-	![edit](static-files/edit.png)
-
-- 评论管理
-
-	![comment-list](static-files/comment-list.png)
-
-- 系统配置
-
-	![config](static-files/config.png)
-
-### 博客展示页面
-
-项目当前仅保留 **amaze 主题**，效果如下：
-
-#### amaze 主题
-
-- 首页
-
-  ![index03](static-files/index03.png)
-
-- 文章浏览
-
-  ![detail03](static-files/detail03.png)
-
-- 友情链接
-
-  ![link03](static-files/link03.png)
-  
-主题由 `MyBlogController` 中的 `THEME` 常量固定为 `amaze`。页面模板位于
-`src/main/resources/templates/blog/amaze/`，主题资源位于
-`src/main/resources/static/blog/amaze/`，公共脚本位于 `static/blog/plugins/`。
-
-## 感谢
-
-- [spring-projects](https://github.com/spring-projects/spring-boot)
-- [ColorlibHQ](https://github.com/ColorlibHQ/AdminLTE)
-- [tonytomov](https://github.com/tonytomov/jqGrid)
-- [pandao](https://github.com/pandao/editor.md)
-- [DONGChuan](https://github.com/DONGChuan/Yummy-Jekyll)
-- [zjhch123](https://github.com/zjhch123/solo-skin-amaze)
-- [t4t5](https://github.com/t4t5/sweetalert)
+本仓库保留上游的 [Apache License 2.0](LICENSE)。原项目的代码与贡献归原作者，本仓库记录在其基础上进行的学习和修改。

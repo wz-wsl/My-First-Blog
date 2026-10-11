@@ -1,5 +1,6 @@
 package com.site.blog.my.core.service.impl;
 
+import com.site.blog.my.core.config.BlogDefaultsProperties;
 import com.site.blog.my.core.dao.BlogConfigMapper;
 import com.site.blog.my.core.entity.BlogConfig;
 import com.site.blog.my.core.service.ConfigService;
@@ -17,20 +18,8 @@ public class ConfigServiceImpl implements ConfigService {
     @Autowired
     private BlogConfigMapper configMapper;
 
-    public static final String websiteName = "personal blog";
-    public static final String websiteDescription = "personal blog是SpringBoot2+Thymeleaf+Mybatis建造的个人博客网站.SpringBoot实战博客源码.个人博客搭建";
-    public static final String websiteLogo = "/admin/dist/img/logo2.png";
-    public static final String websiteIcon = "/admin/dist/img/favicon.png";
-
-    public static final String yourAvatar = "/admin/dist/img/13.png";
-    public static final String yourEmail = "2449207463@qq.com";
-    public static final String yourName = "十三";
-
-    public static final String footerAbout = "your personal blog. have fun.";
-    public static final String footerICP = "浙ICP备 xxxxxx-x号";
-    public static final String footerCopyRight = "@2018 十三";
-    public static final String footerPoweredBy = "personal blog";
-    public static final String footerPoweredByURL = "##";
+    @Autowired
+    private BlogDefaultsProperties defaults;
 
     @Override
     public int updateConfig(String configName, String configValue) {
@@ -50,35 +39,35 @@ public class ConfigServiceImpl implements ConfigService {
         Map<String, String> configMap = blogConfigs.stream().collect(Collectors.toMap(BlogConfig::getConfigName, BlogConfig::getConfigValue));
         for (Map.Entry<String, String> config : configMap.entrySet()) {
             if ("websiteName".equals(config.getKey()) && !StringUtils.hasText(config.getValue())) {
-                config.setValue(websiteName);
+                config.setValue(defaults.getWebsiteName());
             }
             if ("websiteDescription".equals(config.getKey()) && !StringUtils.hasText(config.getValue())) {
-                config.setValue(websiteDescription);
+                config.setValue(defaults.getWebsiteDescription());
             }
             if ("websiteLogo".equals(config.getKey()) && !StringUtils.hasText(config.getValue())) {
-                config.setValue(websiteLogo);
+                config.setValue(defaults.getWebsiteLogo());
             }
             if ("websiteIcon".equals(config.getKey()) && !StringUtils.hasText(config.getValue())) {
-                config.setValue(websiteIcon);
+                config.setValue(defaults.getWebsiteIcon());
             }
             if ("yourAvatar".equals(config.getKey()) && !StringUtils.hasText(config.getValue())) {
-                config.setValue(yourAvatar);
+                config.setValue(defaults.getYourAvatar());
             }
             // 邮箱和备案号是可选项：空值表示不展示，不回填原作者的示例信息。
             if ("yourName".equals(config.getKey()) && !StringUtils.hasText(config.getValue())) {
-                config.setValue(yourName);
+                config.setValue(defaults.getYourName());
             }
             if ("footerAbout".equals(config.getKey()) && !StringUtils.hasText(config.getValue())) {
-                config.setValue(footerAbout);
+                config.setValue(defaults.getFooterAbout());
             }
             if ("footerCopyRight".equals(config.getKey()) && !StringUtils.hasText(config.getValue())) {
-                config.setValue(footerCopyRight);
+                config.setValue(defaults.getFooterCopyRight());
             }
             if ("footerPoweredBy".equals(config.getKey()) && !StringUtils.hasText(config.getValue())) {
-                config.setValue(footerPoweredBy);
+                config.setValue(defaults.getFooterPoweredBy());
             }
             if ("footerPoweredByURL".equals(config.getKey()) && !StringUtils.hasText(config.getValue())) {
-                config.setValue(footerPoweredByURL);
+                config.setValue(defaults.getFooterPoweredByUrl());
             }
         }
         return configMap;
