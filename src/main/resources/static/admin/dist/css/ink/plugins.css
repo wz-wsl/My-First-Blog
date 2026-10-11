@@ -1,0 +1,332 @@
+/*
+ * 第三方插件的外观覆盖
+ * 只改颜色、边框、间距，不改插件的结构和行为。
+ * 涉及：jqGrid 表格、SweetAlert 弹窗、Select2 下拉框、TagsInput 标签输入、Editor.md 编辑器、image-picker 图标选择
+ */
+
+/* ======================= jqGrid 表格 ======================= */
+.ui-jqgrid {
+  overflow: hidden;
+  font-size: 13px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.ui-jqgrid .table {
+  margin: 0;
+  color: var(--ink);
+}
+
+.ui-jqgrid .table-bordered,
+.ui-jqgrid .table-bordered td,
+.ui-jqgrid .table-bordered th {
+  border: 0;
+}
+
+/* 表头 */
+.ui-jqgrid .ui-jqgrid-hdiv {
+  background: var(--tint);
+  border-bottom: 1px solid var(--line);
+}
+
+.ui-jqgrid .ui-jqgrid-htable thead th {
+  padding: 12px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+}
+
+/* 数据行：只保留横向分隔线 */
+.ui-jqgrid .ui-jqgrid-btable tbody tr.jqgrow td {
+  padding: 12px 10px;
+  vertical-align: middle;
+  border-top: 1px solid var(--line-soft);
+}
+
+.ui-jqgrid tr.jqgrow:hover td,
+.ui-jqgrid tr.jqgrow.active td {
+  background: var(--paper);
+}
+
+/* 被勾选的行（jqGrid 会加 success 类） */
+.ui-jqgrid tr.jqgrow.success td {
+  background: var(--soft);
+}
+
+.ui-jqgrid .ui-jqgrid-bdiv {
+  background: var(--surface);
+}
+
+/* 表格里的图片：圆角，和卡片风格一致 */
+.ui-jqgrid tr.jqgrow td img {
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+/* 状态列：blog.js / comment.js 输出的是按钮，这里把它变成小标签 */
+.ui-jqgrid tr.jqgrow td .btn-block {
+  display: inline-block;
+  width: auto !important;
+  padding: 2px 10px;
+  font-size: 11px;
+  line-height: 1.6;
+  border: 0;
+  pointer-events: none; /* 只是展示，不需要点击效果 */
+}
+
+.ui-jqgrid tr.jqgrow td .btn-block.btn-success {
+  color: var(--green);
+  background: var(--soft);
+}
+
+.ui-jqgrid tr.jqgrow td .btn-block.btn-secondary {
+  color: var(--warn);
+  background: var(--warn-soft);
+}
+
+/* 加载中提示 */
+.ui-jqgrid .loading {
+  padding: 8px 16px;
+  color: var(--green);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+}
+
+/* 分页栏 */
+.ui-jqgrid .ui-jqgrid-pager {
+  height: auto;
+  padding: 8px 0;
+  font-size: 12px;
+  color: var(--muted);
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+
+.ui-jqgrid .ui-jqgrid-pager .table,
+.ui-jqgrid .ui-jqgrid-pager td {
+  border: 0;
+}
+
+.ui-jqgrid .ui-pg-table td {
+  color: var(--muted);
+}
+
+.ui-jqgrid .ui-pg-button {
+  border-radius: 6px;
+}
+
+.ui-jqgrid .ui-jqgrid-pager .ui-pg-button:hover {
+  color: var(--green);
+  background: var(--tint);
+}
+
+.ui-jqgrid .ui-pg-input,
+.ui-jqgrid .ui-pg-selbox {
+  display: inline-block;
+  height: 28px;
+  padding: 2px 6px;
+  font-size: 12px;
+}
+
+/* ======================= SweetAlert 弹窗 ======================= */
+.swal-overlay {
+  background: rgba(38, 58, 50, .3);
+}
+
+.swal-modal {
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 60px rgba(38, 58, 50, .18);
+}
+
+.swal-title {
+  font-family: var(--serif);
+  color: var(--ink);
+}
+
+.swal-text {
+  color: var(--muted);
+}
+
+.swal-footer {
+  text-align: center;
+}
+
+.swal-button {
+  padding: 8px 22px;
+  font-weight: 500;
+  border-radius: 999px;
+  background: var(--green);
+}
+
+.swal-button:not([disabled]):hover {
+  background: var(--green-deep);
+}
+
+.swal-button:focus {
+  box-shadow: var(--focus-ring);
+}
+
+.swal-button--cancel {
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.swal-button--cancel:not([disabled]):hover {
+  background: var(--tint);
+}
+
+.swal-button--danger {
+  background: var(--danger);
+}
+
+.swal-button--danger:not([disabled]):hover {
+  background: #96564a;
+}
+
+.swal-icon--success__ring {
+  border-color: var(--green-light);
+}
+
+.swal-icon--success__line {
+  background: var(--green);
+}
+
+/*
+ * 说明：写文章页把 Select2、TagsInput、Editor.md 的样式放在 <body> 里引入，比主题样式更晚加载。
+ * 所以下面三段选择器都加了 body 前缀，提高优先级，保证主题外观生效。
+ */
+
+/* ======================= Select2 下拉框 ======================= */
+body .select2-container--default .select2-selection--single {
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+body .select2-container--default .select2-selection--single .select2-selection__rendered {
+  line-height: 36px;
+  padding-left: 12px;
+  color: var(--ink);
+}
+
+body .select2-container--default .select2-selection--single .select2-selection__arrow {
+  height: 36px;
+}
+
+body .select2-container--default.select2-container--focus .select2-selection--single,
+body .select2-container--default.select2-container--open .select2-selection--single {
+  border-color: var(--green-mid);
+  box-shadow: var(--focus-ring);
+}
+
+body .select2-dropdown {
+  border-color: var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+body .select2-container--default .select2-results__option--highlighted[aria-selected] {
+  background: var(--green);
+}
+
+body .select2-container--default .select2-results__option[aria-selected=true] {
+  color: var(--green);
+  background: var(--soft);
+}
+
+/* ======================= TagsInput 标签输入 ======================= */
+body div.tagsinput {
+  height: auto !important; /* edit.js 初始化时写死了 38px 高度，标签多了会出现滚动条 */
+  min-height: 38px;
+  padding: 4px 8px 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+body div.tagsinput span.tag {
+  margin: 0 6px 4px 0;
+  padding: 2px 10px;
+  font-size: 12px;
+  color: var(--green);
+  background: var(--soft);
+  border-radius: 999px;
+}
+
+body div.tagsinput span.tag a {
+  color: var(--green);
+}
+
+body div.tagsinput input {
+  margin-bottom: 4px;
+  color: var(--ink);
+}
+
+/* ======================= Editor.md 编辑器 ======================= */
+body .editormd {
+  overflow: hidden;
+  border: 1px solid var(--line) !important;
+  border-radius: 10px;
+}
+
+body .editormd .editormd-toolbar {
+  background: var(--tint);
+  border-bottom: 1px solid var(--line);
+}
+
+body .editormd .editormd-menu > li > a {
+  color: var(--muted);
+  border-radius: 4px;
+}
+
+body .editormd .editormd-menu > li > a:hover,
+body .editormd .editormd-menu > li > a.active {
+  color: var(--green);
+  background: var(--soft);
+  border-color: transparent;
+}
+
+body .editormd .editormd-preview {
+  background: var(--paper);
+}
+
+/* ======================= image-picker 分类图标选择 ======================= */
+ul.thumbnails.image_picker_selector {
+  overflow: auto;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+ul.thumbnails.image_picker_selector li {
+  float: left;
+  margin: 0 10px 10px 0;
+}
+
+ul.thumbnails.image_picker_selector li .thumbnail {
+  display: block;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color .2s, background-color .2s;
+}
+
+ul.thumbnails.image_picker_selector li .thumbnail:hover {
+  border-color: var(--green-mid);
+}
+
+ul.thumbnails.image_picker_selector li .thumbnail.selected {
+  background: var(--soft);
+  border-color: var(--green);
+}
+
+ul.thumbnails.image_picker_selector li img {
+  width: 40px;
+  height: 40px;
+}

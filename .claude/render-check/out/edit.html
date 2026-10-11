@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>后台管理 | My Blog</title>
+    <link rel="shortcut icon" href="/admin/dist/img/favicon.png"/>
+    <!-- 图标字体 -->
+    <link rel="stylesheet" href="/admin/dist/css/font-awesome.min.css">
+    <!-- 第三方插件自带样式（栅格、弹窗、表格等） -->
+    <link rel="stylesheet" href="/admin/plugins/bootstrap/css/bootstrap.css"/>
+    <link rel="stylesheet" href="/admin/plugins/sweetalert/sweetalert.css"/>
+    <link rel="stylesheet" href="/admin/plugins/jqgrid-5.7.0/ui.jqgrid-bootstrap4.css"/>
+    <!-- 后台主题「墨韵」，放在最后，覆盖上面插件的默认外观 -->
+    <link rel="stylesheet" href="/admin/dist/css/ink/admin.css">
+</head>
+<body>
+<link href="/admin/plugins/editormd/css/editormd.css" rel="stylesheet"/>
+<link href="/admin/plugins/tagsinput/jquery.tagsinput.css" rel="stylesheet"/>
+<link href="/admin/plugins/select2/select2.css" rel="stylesheet"/>
+<div class="admin-shell">
+    <aside class="admin-sidebar">
+    <a class="sidebar-brand" href="/admin/index">我的博客<small>WRITER'S DESK</small></a>
+
+    <nav>
+        <h6 class="nav-group-title">写作</h6>
+        <a href="/admin/index" class="nav-link-item">
+            <span class="nav-no">01</span>概览
+        </a>
+        <a href="/admin/blogs/edit" class="nav-link-item active">
+            <span class="nav-no">02</span>写新文章
+        </a>
+    </nav>
+
+    <nav>
+        <h6 class="nav-group-title">内容</h6>
+        <a href="/admin/blogs" class="nav-link-item">
+            <span class="nav-no">03</span>文章
+        </a>
+        <a href="/admin/comments" class="nav-link-item">
+            <span class="nav-no">04</span>评论
+        </a>
+        <a href="/admin/categories" class="nav-link-item">
+            <span class="nav-no">05</span>分类
+        </a>
+        <a href="/admin/tags" class="nav-link-item">
+            <span class="nav-no">06</span>标签
+        </a>
+        <a href="/admin/links" class="nav-link-item">
+            <span class="nav-no">07</span>友链
+        </a>
+    </nav>
+
+    <nav>
+        <h6 class="nav-group-title">系统</h6>
+        <a href="/admin/configurations" class="nav-link-item">
+            <span class="nav-no">08</span>站点配置
+        </a>
+        <a href="/admin/profile" class="nav-link-item">
+            <span class="nav-no">09</span>账户安全
+        </a>
+    </nav>
+
+    <!-- 当前登录用户：头像显示昵称的第一个字 -->
+    <div class="sidebar-user">
+        <span class="sidebar-avatar">十</span>
+        <div>
+            <span class="sidebar-user-name">十三</span>
+            <a class="sidebar-logout" href="/admin/logout">退出登录</a>
+        </div>
+    </div>
+</aside>
+    <div class="admin-main">
+        <header class="admin-topbar">
+    <button type="button" class="topbar-toggle" data-toggle-sidebar aria-label="打开菜单">
+        <i class="fa fa-bars"></i>
+    </button>
+    <!-- 日期由 admin.js 填充 -->
+    <span class="topbar-date" data-today></span>
+    <nav class="topbar-actions">
+        <a class="topbar-link" href="/" target="_blank">查看博客 ↗</a>
+        <a class="topbar-link" href="/admin/logout">退出</a>
+    </nav>
+</header>
+
+        <main class="admin-page">
+            <!-- 保存 / 返回按钮：id 对应 edit.js 中绑定的点击事件 -->
+            <div class="page-head">
+                <div>
+                    <p class="page-kicker">WRITE</p>
+                    <h1 class="page-title">编辑文章</h1>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-default" id="cancelButton">返回文章列表</button>
+                    <button class="btn btn-primary btn-raised" id="confirmButton"><i class="fa fa-check"></i>保存文章</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <form id="blogForm" onsubmit="return false;">
+                        <input type="hidden" id="blogId" name="blogId"
+                               value="7">
+
+                        <!-- 标题 -->
+                        <div class="form-group">
+                            <input type="text" class="form-control title-input" id="blogName" name="blogName"
+                                   placeholder="文章标题（必填）"
+                                   value="程序员，你怎么这么忙？"
+                                   required="true">
+                        </div>
+
+                        <!-- 分类、自定义路径、标签 -->
+                        <div class="meta-grid">
+                            <div class="form-group">
+                                <label for="blogCategoryId">分类</label>
+                                <select class="form-control select2" style="width: 100%;" id="blogCategoryId"
+                                        data-placeholder="请选择分类...">
+                                    
+                                    
+                                        
+                                            <option value="1">日常随笔</option>
+                                        
+                                            <option value="2" selected="selected">SSM 整合进阶篇</option>
+                                        
+                                            <option value="3">Spring Boot</option>
+                                        
+                                    
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="blogSubUrl">自定义路径</label>
+                                <input type="text" class="form-control" id="blogSubUrl" name="blogSubUrl"
+                                       value="busy"
+                                       placeholder="如 springboot-mybatis，默认为 id">
+                            </div>
+                            <div class="form-group">
+                                <label for="blogTags">标签</label>
+                                <input type="text" class="form-control" id="blogTags" name="blogTags"
+                                       placeholder="请输入文章标签"
+                                       value="随笔,生活"
+                                       style="width: 100%;">
+                            </div>
+                        </div>
+
+                        <!-- Markdown 编辑器，由 edit.js 初始化 -->
+                        <div class="form-group" id="blog-editormd">
+                            <textarea style="display:none;">## hello
+正文</textarea>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+
+        <footer class="admin-footer">
+    <span>Copyright &copy; 2018 <a href="##">13blog.site</a>. All rights reserved.</span>
+    <span>my personal blog · v1.0</span>
+</footer>
+    </div>
+</div>
+
+<!-- 发布前的信息完善弹窗：点击「保存文章」后由 edit.js 打开 -->
+<div class="modal fade" id="articleModal" tabindex="-1" role="dialog" aria-labelledby="articleModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h6 class="modal-title" id="articleModalLabel">信息完善</h6>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="return false;">
+                    <!-- 封面：左边预览，右边上传 / 随机 -->
+                    <div class="cover-picker">
+                        
+                        
+                            <img id="blogCoverImage" src="/admin/dist/img/rand/1.jpg"
+                                 style="width:160px ;height: 120px;display:block;">
+                        
+                        <div class="cover-actions">
+                            <button class="btn btn-default" id="uploadCoverImage">
+                                <i class="fa fa-picture-o"></i>上传封面
+                            </button>
+                            <button class="btn btn-default" id="randomCoverImage">
+                                <i class="fa fa-random"></i>随机封面
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group radio-group">
+                        <span class="control-label">文章状态</span>
+                        <label class="radio-option">
+                            <input name="blogStatus" type="radio" id="publish"
+                                   checked=checked
+                                   value="1"/>发布
+                        </label>
+                        <label class="radio-option">
+                            <input name="blogStatus" type="radio" id="draft" value="0"/>草稿
+                        </label>
+                    </div>
+                    <div class="form-group radio-group">
+                        <span class="control-label">允许评论</span>
+                        <label class="radio-option">
+                            <input name="enableComment" type="radio" id="enableCommentTrue" checked=checked
+                                   value="0"/>是
+                        </label>
+                        <label class="radio-option">
+                            <input name="enableComment" type="radio" id="enableCommentFalse" value="1"/>否
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveButton">确认</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery -->
+<script src="/admin/plugins/jquery/jquery.min.js"></script>
+<!-- jQuery UI 1.11.4 -->
+<script src="/admin/plugins/jQueryUI/jquery-ui.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="/admin/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- 后台公共交互 -->
+<script src="/admin/dist/js/admin.js"></script>
+<!-- editor.md -->
+<script src="/admin/plugins/editormd/editormd.min.js"></script>
+<!-- tagsinput -->
+<script src="/admin/plugins/tagsinput/jquery.tagsinput.min.js"></script>
+<!-- Select2 -->
+<script src="/admin/plugins/select2/select2.full.min.js"></script>
+<!-- sweetalert -->
+<script src="/admin/plugins/sweetalert/sweetalert.min.js"></script>
+<!-- ajaxupload -->
+<script src="/admin/plugins/ajaxupload/ajaxupload.js"></script>
+<script src="/admin/dist/js/public.js"></script>
+<script src="/admin/dist/js/edit.js"></script>
+</body>
+</html>

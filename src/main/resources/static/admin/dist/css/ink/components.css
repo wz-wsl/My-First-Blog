@@ -1,0 +1,350 @@
+/* 通用组件：页面标题、卡片、按钮、表单、标签、弹窗、提示框 */
+
+/* ---------- 页面标题区 ---------- */
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  margin-bottom: 28px;
+  padding-bottom: 18px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.page-kicker {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .1em;
+  color: var(--muted);
+}
+
+.page-title {
+  margin: 6px 0 0;
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.page-title em {
+  font-style: normal;
+  color: var(--green);
+}
+
+.page-desc {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* ---------- 卡片 ---------- */
+.card {
+  margin-bottom: 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: none;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 18px 24px 0;
+  background: transparent;
+  border-bottom: 0;
+}
+
+.card-title {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.card-body {
+  padding: 20px 24px 24px;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 0 0;
+  margin-top: 8px;
+  background: transparent;
+  border-top: 1px solid var(--line-soft);
+}
+
+/* ---------- 工具栏：表格上方的一排按钮和搜索框 ---------- */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+.toolbar .form-control {
+  width: 220px;
+}
+
+/* ---------- 按钮 ----------
+ * 统一成三种：主按钮（墨绿实心）、次按钮（描边）、危险按钮（浅红）。
+ * 直接覆盖 Bootstrap 的类名，这样页面脚本里写死的 btn-success 等也会跟着变。
+ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  box-shadow: none;
+  transition: background-color .2s, border-color .2s, color .2s, box-shadow .2s;
+}
+
+.btn:focus,
+.btn.focus {
+  box-shadow: var(--focus-ring);
+}
+
+.btn-primary,
+.btn-success,
+.btn-info {
+  color: #fff;
+  background: var(--green);
+  border-color: var(--green);
+}
+
+.btn-primary:hover,
+.btn-success:hover,
+.btn-info:hover,
+.btn-primary:not(:disabled):not(.disabled):active,
+.btn-success:not(:disabled):not(.disabled):active,
+.btn-info:not(:disabled):not(.disabled):active {
+  color: #fff;
+  background: var(--green-deep);
+  border-color: var(--green-deep);
+}
+
+.btn-default,
+.btn-secondary,
+.btn-light,
+.btn-file {
+  color: var(--ink);
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+.btn-default:hover,
+.btn-secondary:hover,
+.btn-light:hover,
+.btn-file:hover,
+.btn-secondary:not(:disabled):not(.disabled):active {
+  color: var(--green);
+  background: var(--tint);
+  border-color: var(--green-light);
+}
+
+.btn-danger {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: transparent;
+}
+
+.btn-danger:hover,
+.btn-danger:not(:disabled):not(.disabled):active {
+  color: #fff;
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+.btn:disabled,
+.btn.disabled {
+  opacity: .55;
+}
+
+/* 主按钮带一点投影，用在页面最重要的操作上 */
+.btn-raised {
+  box-shadow: 0 8px 18px rgba(69, 103, 81, .22);
+}
+
+.btn-sm {
+  padding: 3px 12px;
+  font-size: 12px;
+}
+
+/* ---------- 表单 ---------- */
+label,
+.control-label {
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-control {
+  height: 38px;
+  padding: 7px 12px;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 110px;
+}
+
+.form-control::placeholder {
+  color: var(--faint);
+}
+
+.form-control:focus {
+  color: var(--ink);
+  border-color: var(--green-mid);
+  box-shadow: var(--focus-ring);
+}
+
+/* 单选框组：用 label 包住 radio，点文字也能选中 */
+.radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+}
+
+.radio-group .control-label {
+  margin: 0;
+  min-width: 96px;
+}
+
+.radio-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-weight: 400;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+input[type="radio"],
+input[type="checkbox"] {
+  accent-color: var(--green);
+}
+
+/* 表单网格：两列排布，小屏幕自动变一列 */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
+}
+
+/* ---------- 状态标签 ---------- */
+.pill {
+  display: inline-block;
+  padding: 2px 10px;
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: nowrap;
+  border-radius: 999px;
+  color: var(--green);
+  background: var(--soft);
+}
+
+.pill-warn {
+  color: var(--warn);
+  background: var(--warn-soft);
+}
+
+/* ---------- 提示框 ---------- */
+.alert {
+  padding: 10px 14px;
+  font-size: 13px;
+  border: 0;
+  border-radius: var(--radius-sm);
+}
+
+.alert-danger {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+/* ---------- 弹窗 ---------- */
+.modal-backdrop.show {
+  opacity: 1;
+  background: rgba(38, 58, 50, .3);
+}
+
+.modal-content {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 24px 60px rgba(38, 58, 50, .18);
+}
+
+/* 原模板里关闭按钮写在标题前面，用 row-reverse 让它显示在右边 */
+.modal-header {
+  flex-direction: row-reverse;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.modal-header .close {
+  margin: 0 0 0 auto;
+  padding: 0;
+  font-weight: 300;
+  color: var(--muted);
+  text-shadow: none;
+}
+
+.modal-title {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.modal-body {
+  padding: 20px 24px;
+}
+
+.modal-footer {
+  gap: 8px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.modal-footer > :not(:first-child),
+.modal-footer > :not(:last-child) {
+  margin: 0;
+}
+
+/* ---------- 空状态 / 加载中 ---------- */
+.empty-tip {
+  padding: 28px 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--faint);
+}

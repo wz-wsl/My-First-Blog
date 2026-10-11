@@ -1,0 +1,12 @@
+/*
+ * 后台主题「墨韵」样式入口
+ * 按 变量 → 默认样式 → 骨架 → 组件 → 第三方插件 → 页面 的顺序引入，后面的覆盖前面的。
+ * 配色直接复用前台 amaze 主题的 tokens.css，改一处，前后台一起变。
+ */
+@import url("../../../../blog/amaze/css/tokens.css");
+@import url("tokens.css");
+@import url("base.css");
+@import url("layout.css");
+@import url("components.css");
+@import url("plugins.css");
+@import url("pages.css");

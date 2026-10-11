@@ -1,49 +1,46 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <header th:replace="admin/header::header-fragment"></header>
-<body class="hold-transition sidebar-mini">
+<body>
 <link th:href="@{/admin/plugins/editormd/css/editormd.css}" rel="stylesheet"/>
 <link th:href="@{/admin/plugins/tagsinput/jquery.tagsinput.css}" rel="stylesheet"/>
 <link th:href="@{/admin/plugins/select2/select2.css}" rel="stylesheet"/>
-<div class="wrapper">
-    <!-- 引入页面头header-fragment -->
-    <div th:replace="admin/header::header-nav"></div>
-    <!-- 引入工具栏sidebar-fragment -->
+<div class="admin-shell">
     <div th:replace="admin/sidebar::sidebar-fragment(${path})"></div>
-    <!-- Content Wrapper. Contains page content -->
-    <div class="content-wrapper">
-        <!-- Content Header (Page header) -->
-        <div class="content-header">
-            <div class="container-fluid">
-            </div><!-- /.container-fluid -->
-        </div>
-        <!-- Main content -->
-        <div class="content">
-            <div class="container-fluid">
-                <div class="card card-primary card-outline">
-                    <div class="card-header">
-                        <h3 class="card-title">发布文章</h3>
-                    </div>
-                    <div class="card-body">
-                        <!-- 几个基础的输入框，名称、分类等输入框 -->
-                        <form id="blogForm" onsubmit="return false;">
-                            <div class="form-group" style="display:flex;">
-                                <input type="hidden" id="blogId" name="blogId" th:value="${blog!=null and blog.blogId!=null }?${blog.blogId}: 0">
-                                <input type="text" class="form-control col-sm-6" id="blogName" name="blogName"
-                                       placeholder="*请输入文章标题(必填)"
-                                       th:value="${blog!=null and blog.blogTitle!=null }?${blog.blogTitle}: ''"
-                                       required="true">
-                                &nbsp;&nbsp;
-                                <input type="text" class="form-control" id="blogTags" name="blogTags"
-                                       placeholder="请输入文章标签"
-                                       th:value="${blog!=null and blog.blogTags!=null }?${blog.blogTags}: ''"
-                                       style="width: 100%;">
-                            </div>
-                            <div class="form-group" style="display:flex;">
-                                <input type="text" class="form-control col-sm-6" id="blogSubUrl"
-                                       name="blogSubUrl"
-                                       th:value="${blog!=null and blog.blogSubUrl!=null }?${blog.blogSubUrl}: ''"
-                                       placeholder="请输入自定义路径,如:springboot-mybatis,默认为id"> &nbsp;&nbsp;
+    <div class="admin-main">
+        <div th:replace="admin/header::header-nav"></div>
+
+        <main class="admin-page">
+            <!-- 保存 / 返回按钮：id 对应 edit.js 中绑定的点击事件 -->
+            <div class="page-head">
+                <div>
+                    <p class="page-kicker">WRITE</p>
+                    <h1 class="page-title" th:text="${blog != null} ? '编辑文章' : '写新文章'">写新文章</h1>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-default" id="cancelButton">返回文章列表</button>
+                    <button class="btn btn-primary btn-raised" id="confirmButton"><i class="fa fa-check"></i>保存文章</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <form id="blogForm" onsubmit="return false;">
+                        <input type="hidden" id="blogId" name="blogId"
+                               th:value="${blog!=null and blog.blogId!=null }?${blog.blogId}: 0">
+
+                        <!-- 标题 -->
+                        <div class="form-group">
+                            <input type="text" class="form-control title-input" id="blogName" name="blogName"
+                                   placeholder="文章标题（必填）"
+                                   th:value="${blog!=null and blog.blogTitle!=null }?${blog.blogTitle}: ''"
+                                   required="true">
+                        </div>
+
+                        <!-- 分类、自定义路径、标签 -->
+                        <div class="meta-grid">
+                            <div class="form-group">
+                                <label for="blogCategoryId">分类</label>
                                 <select class="form-control select2" style="width: 100%;" id="blogCategoryId"
                                         data-placeholder="请选择分类...">
                                     <th:block th:if="${null == categories}">
@@ -53,108 +50,114 @@
                                         <th:block th:each="c : ${categories}">
                                             <option th:value="${c.categoryId}" th:text="${c.categoryName}"
                                                     th:selected="${null !=blog and null !=blog.blogCategoryId and blog.blogCategoryId==c.categoryId} ?true:false">
-                                                >
                                             </option>
                                         </th:block>
                                     </th:block>
                                 </select>
                             </div>
-                            <div class="form-group" id="blog-editormd">
-                                <textarea style="display:none;"
-                                          th:utext="${blog!=null and blog.blogContent !=null}?${blog.blogContent}: ''"></textarea>
+                            <div class="form-group">
+                                <label for="blogSubUrl">自定义路径</label>
+                                <input type="text" class="form-control" id="blogSubUrl" name="blogSubUrl"
+                                       th:value="${blog!=null and blog.blogSubUrl!=null }?${blog.blogSubUrl}: ''"
+                                       placeholder="如 springboot-mybatis，默认为 id">
                             </div>
                             <div class="form-group">
-                                <!-- 按钮 -->
-                                &nbsp;<button class="btn btn-info float-right" style="margin-left: 5px;"
-                                              id="confirmButton">保存文章
-                            </button>&nbsp;
-                                &nbsp;<button class="btn btn-secondary float-right" style="margin-left: 5px;"
-                                              id="cancelButton">返回文章列表
-                            </button>&nbsp;
+                                <label for="blogTags">标签</label>
+                                <input type="text" class="form-control" id="blogTags" name="blogTags"
+                                       placeholder="请输入文章标签"
+                                       th:value="${blog!=null and blog.blogTags!=null }?${blog.blogTags}: ''"
+                                       style="width: 100%;">
                             </div>
-                        </form>
-                    </div>
+                        </div>
 
-                </div>
-            </div><!-- /.container-fluid -->
-        </div>
-        <div class="content">
-            <!-- 模态框（Modal） -->
-            <div class="modal fade" id="articleModal" tabindex="-1" role="dialog" aria-labelledby="articleModalLabel">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                                    aria-hidden="true">&times;</span></button>
-                            <h6 class="modal-title" id="articleModalLabel">信息完善</h6>
+                        <!-- Markdown 编辑器，由 edit.js 初始化 -->
+                        <div class="form-group" id="blog-editormd">
+                            <textarea style="display:none;"
+                                      th:utext="${blog!=null and blog.blogContent !=null}?${blog.blogContent}: ''"></textarea>
                         </div>
-                        <div class="modal-body">
-                            <form onsubmit="return false;">
-                                <div class="form-group">
-                                    <div class="col-sm-4">
-                                        <th:block th:if="${null == blog}">
-                                            <img id="blogCoverImage" src="/admin/dist/img/img-upload.png"
-                                                 style="height: 64px;width: 64px;">
-                                        </th:block>
-                                        <th:block th:unless="${null == blog}">
-                                            <img id="blogCoverImage" th:src="${blog.blogCoverImage}"
-                                                 style="width:160px ;height: 120px;display:block;">
-                                        </th:block>
-                                    </div>
-                                </div>
-                                <br>
-                                <div class="form-group">
-                                    <div class="col-sm-4">
-                                        <button class="btn btn-info" style="margin-bottom: 5px;" id="uploadCoverImage">
-                                            <i class="fa fa-picture-o"></i>&nbsp;上传封面
-                                        </button>
-                                        <button class="btn btn-secondary" style="margin-bottom: 5px;"
-                                                id="randomCoverImage"><i
-                                                class="fa fa-random"></i>&nbsp;随机封面
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="control-label">文章状态:&nbsp;</label>
-                                    <input name="blogStatus" type="radio" id="publish"
-                                           checked=true
-                                           th:checked="${null==blog||(null !=blog and null !=blog.blogStatus and blog.blogStatus==1)} ?true:false"
-                                           value="1"/>&nbsp;发布&nbsp;
-                                    <input name="blogStatus" type="radio" id="draft" value="0"
-                                           th:checked="${null !=blog and null !=blog.blogStatus and blog.blogStatus==0} ?true:false"/>&nbsp;草稿&nbsp;
-                                </div>
-                                <div class="form-group">
-                                    <label class="control-label">是否允许评论:&nbsp;</label>
-                                    <input name="enableComment" type="radio" id="enableCommentTrue" checked=true
-                                           th:checked="${null==blog||(null !=blog and null !=blog.enableComment and blog.enableComment==0)} ?true:false"
-                                           value="0"/>&nbsp;是&nbsp;
-                                    <input name="enableComment" type="radio" id="enableCommentFalse" value="1"
-                                           th:checked="${null !=blog and null !=blog.enableComment and blog.enableComment==1} ?true:false"/>&nbsp;否&nbsp;
-                                </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-                            <button type="button" class="btn btn-primary" id="saveButton">确认</button>
-                        </div>
-                    </div>
+                    </form>
                 </div>
             </div>
-            <!-- /.modal -->
+        </main>
+
+        <div th:replace="admin/footer::footer-fragment"></div>
+    </div>
+</div>
+
+<!-- 发布前的信息完善弹窗：点击「保存文章」后由 edit.js 打开 -->
+<div class="modal fade" id="articleModal" tabindex="-1" role="dialog" aria-labelledby="articleModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h6 class="modal-title" id="articleModalLabel">信息完善</h6>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="return false;">
+                    <!-- 封面：左边预览，右边上传 / 随机 -->
+                    <div class="cover-picker">
+                        <th:block th:if="${null == blog}">
+                            <img id="blogCoverImage" src="/admin/dist/img/img-upload.png"
+                                 style="height: 64px;width: 64px;">
+                        </th:block>
+                        <th:block th:unless="${null == blog}">
+                            <img id="blogCoverImage" th:src="${blog.blogCoverImage}"
+                                 style="width:160px ;height: 120px;display:block;">
+                        </th:block>
+                        <div class="cover-actions">
+                            <button class="btn btn-default" id="uploadCoverImage">
+                                <i class="fa fa-picture-o"></i>上传封面
+                            </button>
+                            <button class="btn btn-default" id="randomCoverImage">
+                                <i class="fa fa-random"></i>随机封面
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group radio-group">
+                        <span class="control-label">文章状态</span>
+                        <label class="radio-option">
+                            <input name="blogStatus" type="radio" id="publish"
+                                   checked=true
+                                   th:checked="${null==blog||(null !=blog and null !=blog.blogStatus and blog.blogStatus==1)} ?true:false"
+                                   value="1"/>发布
+                        </label>
+                        <label class="radio-option">
+                            <input name="blogStatus" type="radio" id="draft" value="0"
+                                   th:checked="${null !=blog and null !=blog.blogStatus and blog.blogStatus==0} ?true:false"/>草稿
+                        </label>
+                    </div>
+                    <div class="form-group radio-group">
+                        <span class="control-label">允许评论</span>
+                        <label class="radio-option">
+                            <input name="enableComment" type="radio" id="enableCommentTrue" checked=true
+                                   th:checked="${null==blog||(null !=blog and null !=blog.enableComment and blog.enableComment==0)} ?true:false"
+                                   value="0"/>是
+                        </label>
+                        <label class="radio-option">
+                            <input name="enableComment" type="radio" id="enableCommentFalse" value="1"
+                                   th:checked="${null !=blog and null !=blog.enableComment and blog.enableComment==1} ?true:false"/>否
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveButton">确认</button>
+            </div>
         </div>
     </div>
-    <!-- /.content-wrapper -->
-    <!-- 引入页脚footer-fragment -->
-    <div th:replace="admin/footer::footer-fragment"></div>
 </div>
+
 <!-- jQuery -->
 <script th:src="@{/admin/plugins/jquery/jquery.min.js}"></script>
 <!-- jQuery UI 1.11.4 -->
 <script th:src="@{/admin/plugins/jQueryUI/jquery-ui.min.js}"></script>
 <!-- Bootstrap 4 -->
 <script th:src="@{/admin/plugins/bootstrap/js/bootstrap.bundle.min.js}"></script>
-<!-- AdminLTE App -->
-<script th:src="@{/admin/dist/js/adminlte.min.js}"></script>
+<!-- 后台公共交互 -->
+<script th:src="@{/admin/dist/js/admin.js}"></script>
 <!-- editor.md -->
 <script th:src="@{/admin/plugins/editormd/editormd.min.js}"></script>
 <!-- tagsinput -->

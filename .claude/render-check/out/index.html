@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>后台管理 | My Blog</title>
+    <link rel="shortcut icon" href="/admin/dist/img/favicon.png"/>
+    <!-- 图标字体 -->
+    <link rel="stylesheet" href="/admin/dist/css/font-awesome.min.css">
+    <!-- 第三方插件自带样式（栅格、弹窗、表格等） -->
+    <link rel="stylesheet" href="/admin/plugins/bootstrap/css/bootstrap.css"/>
+    <link rel="stylesheet" href="/admin/plugins/sweetalert/sweetalert.css"/>
+    <link rel="stylesheet" href="/admin/plugins/jqgrid-5.7.0/ui.jqgrid-bootstrap4.css"/>
+    <!-- 后台主题「墨韵」，放在最后，覆盖上面插件的默认外观 -->
+    <link rel="stylesheet" href="/admin/dist/css/ink/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+    <aside class="admin-sidebar">
+    <a class="sidebar-brand" href="/admin/index">我的博客<small>WRITER'S DESK</small></a>
+
+    <nav>
+        <h6 class="nav-group-title">写作</h6>
+        <a href="/admin/index" class="nav-link-item active">
+            <span class="nav-no">01</span>概览
+        </a>
+        <a href="/admin/blogs/edit" class="nav-link-item">
+            <span class="nav-no">02</span>写新文章
+        </a>
+    </nav>
+
+    <nav>
+        <h6 class="nav-group-title">内容</h6>
+        <a href="/admin/blogs" class="nav-link-item">
+            <span class="nav-no">03</span>文章
+        </a>
+        <a href="/admin/comments" class="nav-link-item">
+            <span class="nav-no">04</span>评论
+        </a>
+        <a href="/admin/categories" class="nav-link-item">
+            <span class="nav-no">05</span>分类
+        </a>
+        <a href="/admin/tags" class="nav-link-item">
+            <span class="nav-no">06</span>标签
+        </a>
+        <a href="/admin/links" class="nav-link-item">
+            <span class="nav-no">07</span>友链
+        </a>
+    </nav>
+
+    <nav>
+        <h6 class="nav-group-title">系统</h6>
+        <a href="/admin/configurations" class="nav-link-item">
+            <span class="nav-no">08</span>站点配置
+        </a>
+        <a href="/admin/profile" class="nav-link-item">
+            <span class="nav-no">09</span>账户安全
+        </a>
+    </nav>
+
+    <!-- 当前登录用户：头像显示昵称的第一个字 -->
+    <div class="sidebar-user">
+        <span class="sidebar-avatar">十</span>
+        <div>
+            <span class="sidebar-user-name">十三</span>
+            <a class="sidebar-logout" href="/admin/logout">退出登录</a>
+        </div>
+    </div>
+</aside>
+    <div class="admin-main">
+        <header class="admin-topbar">
+    <button type="button" class="topbar-toggle" data-toggle-sidebar aria-label="打开菜单">
+        <i class="fa fa-bars"></i>
+    </button>
+    <!-- 日期由 admin.js 填充 -->
+    <span class="topbar-date" data-today></span>
+    <nav class="topbar-actions">
+        <a class="topbar-link" href="/" target="_blank">查看博客 ↗</a>
+        <a class="topbar-link" href="/admin/logout">退出</a>
+    </nav>
+</header>
+
+        <main class="admin-page">
+            <!-- 问候语 + 主要操作 -->
+            <div class="page-head">
+                <div>
+                    <p class="page-kicker">DASHBOARD</p>
+                    <!-- 「上午好 / 下午好」由 dashboard.js 根据当前时间替换 -->
+                    <h1 class="page-title"><span data-greeting>你好</span>，<em>十三</em>。</h1>
+                </div>
+                <div class="page-actions">
+                    <a class="btn btn-default" href="/" target="_blank">查看博客 ↗</a>
+                    <a class="btn btn-primary btn-raised" href="/admin/blogs/edit"><i class="fa fa-pencil"></i>写新文章</a>
+                </div>
+            </div>
+
+            <!-- 数据栏：数字由后端直接渲染，点击跳转到对应管理页 -->
+            <div class="stats">
+                <a class="stat" href="/admin/blogs">
+                    <span class="stat-label">文章</span>
+                    <b class="stat-value">49</b>
+                    <span class="stat-more">去管理 →</span>
+                </a>
+                <a class="stat" href="/admin/comments">
+                    <span class="stat-label">评论</span>
+                    <b class="stat-value">11</b>
+                    <span class="stat-more">去审核 →</span>
+                </a>
+                <a class="stat" href="/admin/categories">
+                    <span class="stat-label">分类</span>
+                    <b class="stat-value">10</b>
+                    <span class="stat-more">去管理 →</span>
+                </a>
+                <a class="stat" href="/admin/tags">
+                    <span class="stat-label">标签</span>
+                    <b class="stat-value">72</b>
+                    <span class="stat-more">去管理 →</span>
+                </a>
+                <a class="stat" href="/admin/links">
+                    <span class="stat-label">友链</span>
+                    <b class="stat-value">16</b>
+                    <span class="stat-more">去管理 →</span>
+                </a>
+            </div>
+
+            <div class="dash-grid">
+                <!-- 最近文章：由 dashboard.js 读取已有的文章列表接口填充 -->
+                <section>
+                    <div class="section-head">
+                        <h2>最近的文章</h2>
+                        <a href="/admin/blogs">全部文章 →</a>
+                    </div>
+                    <div id="recentPosts">
+                        <p class="empty-tip">加载中…</p>
+                    </div>
+                </section>
+
+                <!-- 最新评论：由 dashboard.js 读取已有的评论列表接口填充 -->
+                <section>
+                    <div class="section-head">
+                        <h2>新评论</h2>
+                        <a href="/admin/comments">去审核 →</a>
+                    </div>
+                    <div class="comment-card" id="recentComments">
+                        <p class="empty-tip">加载中…</p>
+                    </div>
+                    <div class="quote">「写作是一种整理自己的方式。」<small>— 今日一句</small></div>
+                </section>
+            </div>
+        </main>
+
+        <footer class="admin-footer">
+    <span>Copyright &copy; 2018 <a href="##">13blog.site</a>. All rights reserved.</span>
+    <span>my personal blog · v1.0</span>
+</footer>
+    </div>
+</div>
+
+<!-- jQuery -->
+<script src="/admin/plugins/jquery/jquery.min.js"></script>
+<!-- 后台公共交互 -->
+<script src="/admin/dist/js/admin.js"></script>
+<!-- 概览页 -->
+<script src="/admin/dist/js/dashboard.js"></script>
+</body>
+</html>

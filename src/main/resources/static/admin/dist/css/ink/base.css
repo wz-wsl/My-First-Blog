@@ -1,0 +1,45 @@
+/* 默认样式：覆盖 Bootstrap 的全局字体、颜色等基础设置 */
+body {
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--ink);
+}
+
+a {
+  color: var(--green);
+}
+
+a:hover {
+  color: var(--green-deep);
+  text-decoration: none;
+}
+
+::selection {
+  background: var(--green-light);
+  color: var(--ink);
+}
+
+/* 细一点的滚动条，和整体的纸张感更搭 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--faint);
+}
+
+.pointer {
+  cursor: pointer;
+}

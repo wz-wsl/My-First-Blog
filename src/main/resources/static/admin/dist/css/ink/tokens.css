@@ -1,0 +1,19 @@
+/* 后台专用变量：在前台 tokens.css 的基础上补充后台需要的颜色和尺寸 */
+:root {
+  /* 强调色的加深版，用于按钮悬停 */
+  --green-deep: #36533f;
+
+  /* 状态色：危险（删除）与提醒（草稿 / 待审核） */
+  --danger: #b0675a;
+  --danger-soft: #f6ebe7;
+  --warn: #9a7b3e;
+  --warn-soft: #f4efe4;
+
+  /* 后台布局尺寸 */
+  --sidebar-width: 232px;
+  --page-padding: 48px;
+  --radius-lg: 14px;
+
+  /* 聚焦时的外发光 */
+  --focus-ring: 0 0 0 3px rgba(69, 103, 81, .14);
+}

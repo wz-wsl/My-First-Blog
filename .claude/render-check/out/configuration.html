@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>后台管理 | My Blog</title>
+    <link rel="shortcut icon" href="/admin/dist/img/favicon.png"/>
+    <!-- 图标字体 -->
+    <link rel="stylesheet" href="/admin/dist/css/font-awesome.min.css">
+    <!-- 第三方插件自带样式（栅格、弹窗、表格等） -->
+    <link rel="stylesheet" href="/admin/plugins/bootstrap/css/bootstrap.css"/>
+    <link rel="stylesheet" href="/admin/plugins/sweetalert/sweetalert.css"/>
+    <link rel="stylesheet" href="/admin/plugins/jqgrid-5.7.0/ui.jqgrid-bootstrap4.css"/>
+    <!-- 后台主题「墨韵」，放在最后，覆盖上面插件的默认外观 -->
+    <link rel="stylesheet" href="/admin/dist/css/ink/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+    <aside class="admin-sidebar">
+    <a class="sidebar-brand" href="/admin/index">我的博客<small>WRITER'S DESK</small></a>
+
+    <nav>
+        <h6 class="nav-group-title">写作</h6>
+        <a href="/admin/index" class="nav-link-item">
+            <span class="nav-no">01</span>概览
+        </a>
+        <a href="/admin/blogs/edit" class="nav-link-item">
+            <span class="nav-no">02</span>写新文章
+        </a>
+    </nav>
+
+    <nav>
+        <h6 class="nav-group-title">内容</h6>
+        <a href="/admin/blogs" class="nav-link-item">
+            <span class="nav-no">03</span>文章
+        </a>
+        <a href="/admin/comments" class="nav-link-item">
+            <span class="nav-no">04</span>评论
+        </a>
+        <a href="/admin/categories" class="nav-link-item">
+            <span class="nav-no">05</span>分类
+        </a>
+        <a href="/admin/tags" class="nav-link-item">
+            <span class="nav-no">06</span>标签
+        </a>
+        <a href="/admin/links" class="nav-link-item">
+            <span class="nav-no">07</span>友链
+        </a>
+    </nav>
+
+    <nav>
+        <h6 class="nav-group-title">系统</h6>
+        <a href="/admin/configurations" class="nav-link-item active">
+            <span class="nav-no">08</span>站点配置
+        </a>
+        <a href="/admin/profile" class="nav-link-item">
+            <span class="nav-no">09</span>账户安全
+        </a>
+    </nav>
+
+    <!-- 当前登录用户：头像显示昵称的第一个字 -->
+    <div class="sidebar-user">
+        <span class="sidebar-avatar">十</span>
+        <div>
+            <span class="sidebar-user-name">十三</span>
+            <a class="sidebar-logout" href="/admin/logout">退出登录</a>
+        </div>
+    </div>
+</aside>
+    <div class="admin-main">
+        <header class="admin-topbar">
+    <button type="button" class="topbar-toggle" data-toggle-sidebar aria-label="打开菜单">
+        <i class="fa fa-bars"></i>
+    </button>
+    <!-- 日期由 admin.js 填充 -->
+    <span class="topbar-date" data-today></span>
+    <nav class="topbar-actions">
+        <a class="topbar-link" href="/" target="_blank">查看博客 ↗</a>
+        <a class="topbar-link" href="/admin/logout">退出</a>
+    </nav>
+</header>
+
+        <main class="admin-page">
+            <div class="page-head">
+                <div>
+                    <p class="page-kicker">SYSTEM / SETTINGS</p>
+                    <h1 class="page-title">站点配置</h1>
+                    <p class="page-desc">这里的内容会显示在博客前台，每张卡片单独保存。</p>
+                </div>
+            </div>
+
+            <!-- 三张卡片的表单 id、字段名、按钮 id 都对应 configuration.js -->
+            <div class="settings-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">站点信息</h3>
+                            <p class="card-desc">名称、描述与图标</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form role="form" id="websiteForm">
+                            <div class="form-group">
+                                <label for="websiteName">站点名称</label>
+                                <input type="text" class="form-control" id="websiteName"
+                                       name="websiteName"
+                                       placeholder="站点名称" value="My Blog">
+                            </div>
+                            <div class="form-group">
+                                <label for="websiteDescription">站点描述</label>
+                                <input type="text" class="form-control" id="websiteDescription"
+                                       name="websiteDescription"
+                                       value=""
+                                       placeholder="站点描述">
+                            </div>
+                            <div class="form-group">
+                                <label for="websiteLogo">站点 Logo</label>
+                                <input type="text" class="form-control" id="websiteLogo"
+                                       name="websiteLogo" value=""
+                                       placeholder="站点Logo">
+                            </div>
+                            <div class="form-group">
+                                <label for="websiteIcon">favicon.ico</label>
+                                <input type="text" class="form-control" id="websiteIcon"
+                                       value=""
+                                       name="websiteIcon"
+                                       placeholder="favicon.ico">
+                            </div>
+                            <div class="card-footer">
+                                <button type="button" id="updateWebsiteButton" onsubmit="return false;"
+                                        class="btn btn-primary">保存
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">个人信息</h3>
+                            <p class="card-desc">头像、名称与联系邮箱</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form role="form" id="userInfoForm">
+                            <div class="form-group">
+                                <label for="yourAvatar">个人头像</label>
+                                <input type="text" class="form-control" id="yourAvatar"
+                                       name="yourAvatar" value=""
+                                       placeholder="个人头像">
+                            </div>
+                            <div class="form-group">
+                                <label for="yourName">个人名称</label>
+                                <input type="text" class="form-control" id="yourName"
+                                       name="yourName" value="十三"
+                                       placeholder="个人名称">
+                            </div>
+                            <div class="form-group">
+                                <label for="yourEmail">个人邮箱</label>
+                                <input type="email" class="form-control" id="yourEmail" name="yourEmail"
+                                       value=""
+                                       placeholder="个人邮箱">
+                            </div>
+                            <div class="card-footer">
+                                <button type="button" id="updateUserInfoButton" onsubmit="return false;"
+                                        class="btn btn-primary">保存
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3 class="card-title">底部设置</h3>
+                            <p class="card-desc">页脚的版权与备案信息</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form role="form" id="footerForm">
+                            <div class="form-group">
+                                <label for="footerAbout">底部 About</label>
+                                <input type="text" class="form-control" id="footerAbout"
+                                       name="footerAbout" value=""
+                                       placeholder="About">
+                            </div>
+                            <div class="form-group">
+                                <label for="footerICP">底部备案号</label>
+                                <input type="text" class="form-control" id="footerICP" name="footerICP"
+                                       value="浙ICP备 xxxxxx 号"
+                                       placeholder="备案号">
+                            </div>
+                            <div class="form-group">
+                                <label for="footerCopyRight">底部 Copy Right</label>
+                                <input type="text" class="form-control" id="footerCopyRight"
+                                       name="footerCopyRight"
+                                       value=""
+                                       placeholder="Copy Right">
+                            </div>
+                            <div class="form-group">
+                                <label for="footerPoweredBy">底部 Powered By</label>
+                                <input type="text" class="form-control" id="footerPoweredBy"
+                                       name="footerPoweredBy"
+                                       value=""
+                                       placeholder="Powered By">
+                            </div>
+                            <div class="form-group">
+                                <label for="footerPoweredByURL">底部 Powered By URL</label>
+                                <input type="text" class="form-control" id="footerPoweredByURL"
+                                       name="footerPoweredByURL"
+                                       value=""
+                                       placeholder="Powered By URL">
+                            </div>
+                            <div class="card-footer">
+                                <button type="button" id="updateFooterButton" onsubmit="return false;"
+                                        class="btn btn-primary">保存
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="admin-footer">
+    <span>Copyright &copy; 2018 <a href="##">13blog.site</a>. All rights reserved.</span>
+    <span>my personal blog · v1.0</span>
+</footer>
+    </div>
+</div>
+
+<!-- jQuery -->
+<script src="/admin/plugins/jquery/jquery.min.js"></script>
+<!-- jQuery UI 1.11.4 -->
+<script src="/admin/plugins/jQueryUI/jquery-ui.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="/admin/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- 后台公共交互 -->
+<script src="/admin/dist/js/admin.js"></script>
+<!-- sweetalert -->
+<script src="/admin/plugins/sweetalert/sweetalert.min.js"></script>
+<script src="/admin/dist/js/configuration.js"></script>
+</body>
+</html>

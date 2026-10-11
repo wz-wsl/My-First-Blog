@@ -1,89 +1,60 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>personal blog | Log in</title>
-    <!-- Tell the browser to be responsive to screen width -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>登录 | My Blog</title>
     <link rel="shortcut icon" th:href="@{/admin/dist/img/favicon.png}"/>
-    <!-- Font Awesome -->
     <link rel="stylesheet" th:href="@{/admin/dist/css/font-awesome.min.css}">
-    <!-- Ionicons -->
-    <link rel="stylesheet" th:href="@{/admin/dist/css/ionicons.min.css}">
-    <!-- Theme style -->
-    <link rel="stylesheet" th:href="@{/admin/dist/css/adminlte.min.css}">
-    <style>
-        canvas {
-            display: block;
-            vertical-align: bottom;
-        }
-        #particles {
-            background-color: #F7FAFC;
-            position: absolute;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/admin/plugins/bootstrap/css/bootstrap.css}"/>
+    <link rel="stylesheet" th:href="@{/admin/dist/css/ink/admin.css}">
 </head>
-<body class="hold-transition login-page">
-<div id="particles">
-</div>
-<div class="login-box">
-    <div class="login-logo" style="color: #007bff;">
-        <h1>personal blog</h1>
-    </div>
-    <!-- /.login-logo -->
-    <div class="card">
-        <div class="card-body login-card-body">
-            <p class="login-box-msg">your personal blog , enjoy it</p>
-            <form th:action="@{/admin/login}" method="post">
-                <div th:if="${not #strings.isEmpty(session.errorMsg)}" class="form-group">
-                    <div class="alert alert-danger" th:text="${session.errorMsg}"></div>
-                </div>
-                <div class="form-group has-feedback">
-                    <span class="fa fa-user form-control-feedback"></span>
-                    <input type="text" id="userName" name="userName" class="form-control" placeholder="请输入账号"
-                           required="true">
-                </div>
-                <div class="form-group has-feedback">
-                    <span class="fa fa-lock form-control-feedback"></span>
-                    <input type="password" id="password" name="password" class="form-control" placeholder="请输入密码"
-                           required="true">
-                </div>
-                <div class="row">
-                    <div class="col-6">
-                        <input type="text" class="form-control" name="verifyCode" placeholder="请输入验证码" required="true">
-                    </div>
-                    <div class="col-6">
-                        <img alt="单击图片刷新！" class="pointer" th:src="@{/common/kaptcha}"
-                             onclick="this.src='/common/kaptcha?d='+new Date()*1">
-                    </div>
-                </div>
-                <div class="form-group has-feedback"></div>
-                <div class="row">
-                    <div class="col-8">
-                    </div>
-                    <div class="col-4">
-                        <button type="submit" class="btn btn-primary btn-block btn-flat">登录
-                        </button>
-                    </div>
-                </div>
-            </form>
+<body>
+<div class="login-page">
+    <!-- 左侧：品牌封面（小屏幕隐藏） -->
+    <section class="login-cover">
+        <div class="login-brand">我的博客<small>WRITER'S DESK</small></div>
+        <p class="login-slogan">
+            把想说的话，<br>慢慢写下来。
+            <small>欢迎回来，今天也写点什么吧。</small>
+        </p>
+    </section>
 
-        </div>
-        <!-- /.login-card-body -->
-    </div>
-</div>
-<!-- /.login-box -->
+    <!-- 右侧：登录表单，字段名和提交地址保持不变 -->
+    <section class="login-panel">
+        <form class="login-form" th:action="@{/admin/login}" method="post">
+            <h1>登录后台</h1>
+            <p class="page-desc">请输入账号、密码和验证码</p>
 
-<!-- jQuery -->
-<script th:src="@{/admin/plugins/jquery/jquery.min.js}"></script>
-<!-- Bootstrap 4 -->
-<script th:src="@{/admin/plugins/bootstrap/js/bootstrap.bundle.min.js}"></script>
-<script th:src="@{/admin/dist/js/plugins/particles.js}"></script>
-<script th:src="@{/admin/dist/js/plugins/login-bg-particles.js}"></script>
+            <!-- 后端返回的错误信息 -->
+            <div th:if="${not #strings.isEmpty(session.errorMsg)}" class="form-group">
+                <div class="alert alert-danger" th:text="${session.errorMsg}"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="userName">账号</label>
+                <input type="text" id="userName" name="userName" class="form-control" placeholder="请输入账号"
+                       required="true">
+            </div>
+            <div class="form-group">
+                <label for="password">密码</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="请输入密码"
+                       required="true">
+            </div>
+            <div class="form-group">
+                <label for="verifyCode">验证码</label>
+                <div class="captcha-row">
+                    <input type="text" id="verifyCode" class="form-control" name="verifyCode" placeholder="请输入验证码"
+                           required="true">
+                    <!-- 点击图片刷新验证码 -->
+                    <img alt="单击图片刷新！" title="看不清？点击换一张" class="pointer" th:src="@{/common/kaptcha}"
+                         onclick="this.src='/common/kaptcha?d='+new Date()*1">
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-raised">登 录</button>
+        </form>
+    </section>
+</div>
 </body>
 </html>

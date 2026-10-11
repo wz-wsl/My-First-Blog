@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>后台管理 | My Blog</title>
+    <link rel="shortcut icon" href="/admin/dist/img/favicon.png"/>
+    <!-- 图标字体 -->
+    <link rel="stylesheet" href="/admin/dist/css/font-awesome.min.css">
+    <!-- 第三方插件自带样式（栅格、弹窗、表格等） -->
+    <link rel="stylesheet" href="/admin/plugins/bootstrap/css/bootstrap.css"/>
+    <link rel="stylesheet" href="/admin/plugins/sweetalert/sweetalert.css"/>
+    <link rel="stylesheet" href="/admin/plugins/jqgrid-5.7.0/ui.jqgrid-bootstrap4.css"/>
+    <!-- 后台主题「墨韵」，放在最后，覆盖上面插件的默认外观 -->
+    <link rel="stylesheet" href="/admin/dist/css/ink/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+    <aside class="admin-sidebar">
+    <a class="sidebar-brand" href="/admin/index">我的博客<small>WRITER'S DESK</small></a>
+
+    <nav>
+        <h6 class="nav-group-title">写作</h6>
+        <a href="/admin/index" class="nav-link-item">
+            <span class="nav-no">01</span>概览
+        </a>
+        <a href="/admin/blogs/edit" class="nav-link-item">
+            <span class="nav-no">02</span>写新文章
+        </a>
+    </nav>
+
+    <nav>
+        <h6 class="nav-group-title">内容</h6>
+        <a href="/admin/blogs" class="nav-link-item">
+            <span class="nav-no">03</span>文章
+        </a>
+        <a href="/admin/comments" class="nav-link-item active">
+            <span class="nav-no">04</span>评论
+        </a>
+        <a href="/admin/categories" class="nav-link-item">
+            <span class="nav-no">05</span>分类
+        </a>
+        <a href="/admin/tags" class="nav-link-item">
+            <span class="nav-no">06</span>标签
+        </a>
+        <a href="/admin/links" class="nav-link-item">
+            <span class="nav-no">07</span>友链
+        </a>
+    </nav>
+
+    <nav>
+        <h6 class="nav-group-title">系统</h6>
+        <a href="/admin/configurations" class="nav-link-item">
+            <span class="nav-no">08</span>站点配置
+        </a>
+        <a href="/admin/profile" class="nav-link-item">
+            <span class="nav-no">09</span>账户安全
+        </a>
+    </nav>
+
+    <!-- 当前登录用户：头像显示昵称的第一个字 -->
+    <div class="sidebar-user">
+        <span class="sidebar-avatar">十</span>
+        <div>
+            <span class="sidebar-user-name">十三</span>
+            <a class="sidebar-logout" href="/admin/logout">退出登录</a>
+        </div>
+    </div>
+</aside>
+    <div class="admin-main">
+        <header class="admin-topbar">
+    <button type="button" class="topbar-toggle" data-toggle-sidebar aria-label="打开菜单">
+        <i class="fa fa-bars"></i>
+    </button>
+    <!-- 日期由 admin.js 填充 -->
+    <span class="topbar-date" data-today></span>
+    <nav class="topbar-actions">
+        <a class="topbar-link" href="/" target="_blank">查看博客 ↗</a>
+        <a class="topbar-link" href="/admin/logout">退出</a>
+    </nav>
+</header>
+
+        <main class="admin-page">
+            <div class="page-head">
+                <div>
+                    <p class="page-kicker">CONTENT / COMMENTS</p>
+                    <h1 class="page-title">评论管理</h1>
+                    <p class="page-desc">勾选评论后可以批量审核或删除。</p>
+                </div>
+            </div>
+
+            <div class="card grid-wrap-text">
+                <div class="card-body">
+                    <!-- 工具栏：按钮的 onclick 对应 comment.js 中的函数 -->
+                    <div class="toolbar">
+                        <button class="btn btn-primary" onclick="checkDoneComments()"><i class="fa fa-check"></i>批量审核</button>
+                        <button class="btn btn-default" onclick="reply()"><i class="fa fa-reply"></i>回复</button>
+                        <button class="btn btn-danger" onclick="deleteComments()"><i class="fa fa-trash-o"></i>批量删除</button>
+                    </div>
+                    <!-- jqGrid 必要 DOM：表格 + 分页 -->
+                    <table id="jqGrid" class="table table-bordered"></table>
+                    <div id="jqGridPager"></div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="admin-footer">
+    <span>Copyright &copy; 2018 <a href="##">13blog.site</a>. All rights reserved.</span>
+    <span>my personal blog · v1.0</span>
+</footer>
+    </div>
+</div>
+
+<!-- 回复评论弹窗 -->
+<div class="modal fade" id="replyModal" tabindex="-1" role="dialog" aria-labelledby="replyModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h6 class="modal-title" id="replyModalLabel">评论回复</h6>
+            </div>
+            <div class="modal-body">
+                <form id="replyForm">
+                    <input type="hidden" class="form-control" id="categoryId" name="categoryId">
+                    <div class="form-group">
+                        <label for="replyBody" class="control-label">回复内容</label>
+                        <textarea class="form-control" id="replyBody" name="replyBody"
+                                  placeholder="请输入回复内容" required="true"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveButton">确认</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery -->
+<script src="/admin/plugins/jquery/jquery.min.js"></script>
+<!-- jQuery UI 1.11.4 -->
+<script src="/admin/plugins/jQueryUI/jquery-ui.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="/admin/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- 后台公共交互 -->
+<script src="/admin/dist/js/admin.js"></script>
+<!-- jqgrid -->
+<script src="/admin/plugins/jqgrid-5.7.0/jquery.jqGrid.min.js"></script>
+<script src="/admin/plugins/jqgrid-5.7.0/grid.locale-cn.js"></script>
+<!-- sweetalert -->
+<script src="/admin/plugins/sweetalert/sweetalert.min.js"></script>
+<script src="/admin/dist/js/public.js"></script>
+<script src="/admin/dist/js/comment.js"></script>
+</body>
+</html>

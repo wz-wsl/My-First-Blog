@@ -1,138 +1,90 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <header th:replace="admin/header::header-fragment"></header>
-<body class="hold-transition sidebar-mini">
-<div class="wrapper">
-    <!-- 引入页面头header-fragment -->
-    <div th:replace="admin/header::header-nav"></div>
-    <!-- 引入工具栏sidebar-fragment -->
+<body>
+<div class="admin-shell">
     <div th:replace="admin/sidebar::sidebar-fragment(${path})"></div>
-    <!-- Content Wrapper. Contains page content -->
-    <div class="content-wrapper">
-        <!-- Content Header (Page header) -->
-        <div class="content-header">
-            <div class="container-fluid">
-            </div><!-- /.container-fluid -->
-        </div>
-        <!-- Main content -->
-        <div class="content">
-            <div class="container-fluid">
-                <div class="card-header">
-                    <h3 class="card-title">管理首页</h3>
-                </div> <!-- /.card-body -->
-                <div class="row" style="margin-top: 40px;border-top:0px;">
-                    <div class="col-lg-4 col-6">
-                        <!-- small box -->
-                        <div class="small-box bg-info">
-                            <div class="inner">
-                                <h3>新增博客</h3>
+    <div class="admin-main">
+        <div th:replace="admin/header::header-nav"></div>
 
-                                <p>记心中所想</p>
-                            </div>
-                            <div class="icon">
-                                <i class="fa fa-pencil-square-o"></i>
-                            </div>
-                            <a th:href="@{/admin/blogs/edit}" class="small-box-footer">let's go <i
-                                    class="fa fa-arrow-circle-right"></i></a>
-                        </div>
-                    </div>
-                    <!-- ./col -->
-                    <div class="col-lg-4 col-6">
-                        <!-- small box -->
-                        <div class="small-box bg-success">
-                            <div class="inner">
-                                <h3 th:text="${blogCount}">65</h3>
-
-                                <p>总文章数</p>
-                            </div>
-                            <div class="icon">
-                                <i class="fa fa-list-alt"></i>
-                            </div>
-                            <a th:href="@{/admin/blogs}" class="small-box-footer">More info <i
-                                    class="fa fa-arrow-circle-right"></i></a>
-                        </div>
-                    </div>
-                    <!-- ./col -->
-                    <div class="col-lg-4 col-6">
-                        <!-- small box -->
-                        <div class="small-box bg-primary">
-                            <div class="inner">
-                                <h3 th:text="${commentCount}">65</h3>
-
-                                <p>收到评论数</p>
-                            </div>
-                            <div class="icon">
-                                <i class="fa fa-comments"></i>
-                            </div>
-                            <a th:href="@{/admin/comments}" class="small-box-footer">More info <i
-                                    class="fa fa-arrow-circle-right"></i></a>
-                        </div>
-                    </div>
-                    <!-- ./col -->
-                    <div class="col-lg-4 col-6">
-                        <!-- small box -->
-                        <div class="small-box bg-warning">
-                            <div class="inner">
-                                <h3 th:text="${categoryCount}">65</h3>
-
-                                <p>分类数量</p>
-                            </div>
-                            <div class="icon">
-                                <i class="fa fa-bookmark"></i>
-                            </div>
-                            <a th:href="@{/admin/categories}" class="small-box-footer">More info <i
-                                    class="fa fa-arrow-circle-right"></i></a>
-                        </div>
-                    </div>
-                    <!-- ./col -->
-                    <div class="col-lg-4 col-6">
-                        <!-- small box -->
-                        <div class="small-box bg-danger">
-                            <div class="inner">
-                                <h3 th:text="${tagCount}">65</h3>
-
-                                <p>标签总量</p>
-                            </div>
-                            <div class="icon">
-                                <i class="fa fa-tags"></i>
-                            </div>
-                            <a th:href="@{/admin/tags}" class="small-box-footer">More info <i
-                                    class="fa fa-arrow-circle-right"></i></a>
-                        </div>
-                    </div>
-                    <!-- ./col -->
-                    <div class="col-lg-4 col-6">
-                        <!-- small box -->
-                        <div class="small-box bg-dark">
-                            <div class="inner">
-                                <h3 th:text="${linkCount}">65</h3>
-
-                                <p>友情链接</p>
-                            </div>
-                            <div class="icon">
-                                <i class="fa fa-heart"></i>
-                            </div>
-                            <a th:href="@{/admin/links}" class="small-box-footer">More info <i
-                                    class="fa fa-arrow-circle-right"></i></a>
-                        </div>
-                    </div>
-                    <!-- ./col -->
+        <main class="admin-page">
+            <!-- 问候语 + 主要操作 -->
+            <div class="page-head">
+                <div>
+                    <p class="page-kicker">DASHBOARD</p>
+                    <!-- 「上午好 / 下午好」由 dashboard.js 根据当前时间替换 -->
+                    <h1 class="page-title"><span data-greeting>你好</span>，<em th:text="${session.loginUser}">admin</em>。</h1>
                 </div>
-            </div><!-- /.container-fluid -->
-        </div>
-        <!-- /.content -->
+                <div class="page-actions">
+                    <a class="btn btn-default" th:href="@{/}" target="_blank">查看博客 ↗</a>
+                    <a class="btn btn-primary btn-raised" th:href="@{/admin/blogs/edit}"><i class="fa fa-pencil"></i>写新文章</a>
+                </div>
+            </div>
+
+            <!-- 数据栏：数字由后端直接渲染，点击跳转到对应管理页 -->
+            <div class="stats">
+                <a class="stat" th:href="@{/admin/blogs}">
+                    <span class="stat-label">文章</span>
+                    <b class="stat-value" th:text="${blogCount}">0</b>
+                    <span class="stat-more">去管理 →</span>
+                </a>
+                <a class="stat" th:href="@{/admin/comments}">
+                    <span class="stat-label">评论</span>
+                    <b class="stat-value" th:text="${commentCount}">0</b>
+                    <span class="stat-more">去审核 →</span>
+                </a>
+                <a class="stat" th:href="@{/admin/categories}">
+                    <span class="stat-label">分类</span>
+                    <b class="stat-value" th:text="${categoryCount}">0</b>
+                    <span class="stat-more">去管理 →</span>
+                </a>
+                <a class="stat" th:href="@{/admin/tags}">
+                    <span class="stat-label">标签</span>
+                    <b class="stat-value" th:text="${tagCount}">0</b>
+                    <span class="stat-more">去管理 →</span>
+                </a>
+                <a class="stat" th:href="@{/admin/links}">
+                    <span class="stat-label">友链</span>
+                    <b class="stat-value" th:text="${linkCount}">0</b>
+                    <span class="stat-more">去管理 →</span>
+                </a>
+            </div>
+
+            <div class="dash-grid">
+                <!-- 最近文章：由 dashboard.js 读取已有的文章列表接口填充 -->
+                <section>
+                    <div class="section-head">
+                        <h2>最近的文章</h2>
+                        <a th:href="@{/admin/blogs}">全部文章 →</a>
+                    </div>
+                    <div id="recentPosts">
+                        <p class="empty-tip">加载中…</p>
+                    </div>
+                </section>
+
+                <!-- 最新评论：由 dashboard.js 读取已有的评论列表接口填充 -->
+                <section>
+                    <div class="section-head">
+                        <h2>新评论</h2>
+                        <a th:href="@{/admin/comments}">去审核 →</a>
+                    </div>
+                    <div class="comment-card" id="recentComments">
+                        <p class="empty-tip">加载中…</p>
+                    </div>
+                    <div class="quote">「写作是一种整理自己的方式。」<small>— 今日一句</small></div>
+                </section>
+            </div>
+        </main>
+
+        <div th:replace="admin/footer::footer-fragment"></div>
     </div>
-    <!-- /.content-wrapper -->
-    <!-- 引入页脚footer-fragment -->
-    <div th:replace="admin/footer::footer-fragment"></div>
 </div>
+
 <!-- jQuery -->
 <script th:src="@{/admin/plugins/jquery/jquery.min.js}"></script>
-<!-- jQuery UI 1.11.4 -->
-<script th:src="@{/admin/plugins/jQueryUI/jquery-ui.min.js}"></script>
-<!-- Bootstrap 4 -->
-<script th:src="@{/admin/plugins/bootstrap/js/bootstrap.bundle.min.js}"></script>
-<!-- AdminLTE App -->
-<script th:src="@{/admin/dist/js/adminlte.min.js}"></script>
+<!-- 后台公共交互 -->
+<script th:src="@{/admin/dist/js/admin.js}"></script>
+<!-- 概览页 -->
+<script th:src="@{/admin/dist/js/dashboard.js}"></script>
 </body>
 </html>

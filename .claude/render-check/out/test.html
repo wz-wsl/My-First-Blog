@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>后台管理 | My Blog</title>
+    <link rel="shortcut icon" href="/admin/dist/img/favicon.png"/>
+    <!-- 图标字体 -->
+    <link rel="stylesheet" href="/admin/dist/css/font-awesome.min.css">
+    <!-- 第三方插件自带样式（栅格、弹窗、表格等） -->
+    <link rel="stylesheet" href="/admin/plugins/bootstrap/css/bootstrap.css"/>
+    <link rel="stylesheet" href="/admin/plugins/sweetalert/sweetalert.css"/>
+    <link rel="stylesheet" href="/admin/plugins/jqgrid-5.7.0/ui.jqgrid-bootstrap4.css"/>
+    <!-- 后台主题「墨韵」，放在最后，覆盖上面插件的默认外观 -->
+    <link rel="stylesheet" href="/admin/dist/css/ink/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+    <aside class="admin-sidebar">
+    <a class="sidebar-brand" href="/admin/index">我的博客<small>WRITER'S DESK</small></a>
+
+    <nav>
+        <h6 class="nav-group-title">写作</h6>
+        <a href="/admin/index" class="nav-link-item">
+            <span class="nav-no">01</span>概览
+        </a>
+        <a href="/admin/blogs/edit" class="nav-link-item">
+            <span class="nav-no">02</span>写新文章
+        </a>
+    </nav>
+
+    <nav>
+        <h6 class="nav-group-title">内容</h6>
+        <a href="/admin/blogs" class="nav-link-item">
+            <span class="nav-no">03</span>文章
+        </a>
+        <a href="/admin/comments" class="nav-link-item">
+            <span class="nav-no">04</span>评论
+        </a>
+        <a href="/admin/categories" class="nav-link-item">
+            <span class="nav-no">05</span>分类
+        </a>
+        <a href="/admin/tags" class="nav-link-item">
+            <span class="nav-no">06</span>标签
+        </a>
+        <a href="/admin/links" class="nav-link-item">
+            <span class="nav-no">07</span>友链
+        </a>
+    </nav>
+
+    <nav>
+        <h6 class="nav-group-title">系统</h6>
+        <a href="/admin/configurations" class="nav-link-item">
+            <span class="nav-no">08</span>站点配置
+        </a>
+        <a href="/admin/profile" class="nav-link-item">
+            <span class="nav-no">09</span>账户安全
+        </a>
+    </nav>
+
+    <!-- 当前登录用户：头像显示昵称的第一个字 -->
+    <div class="sidebar-user">
+        <span class="sidebar-avatar">十</span>
+        <div>
+            <span class="sidebar-user-name">十三</span>
+            <a class="sidebar-logout" href="/admin/logout">退出登录</a>
+        </div>
+    </div>
+</aside>
+    <div class="admin-main">
+        <header class="admin-topbar">
+    <button type="button" class="topbar-toggle" data-toggle-sidebar aria-label="打开菜单">
+        <i class="fa fa-bars"></i>
+    </button>
+    <!-- 日期由 admin.js 填充 -->
+    <span class="topbar-date" data-today></span>
+    <nav class="topbar-actions">
+        <a class="topbar-link" href="/" target="_blank">查看博客 ↗</a>
+        <a class="topbar-link" href="/admin/logout">退出</a>
+    </nav>
+</header>
+
+        <main class="admin-page">
+            <div class="page-head">
+                <div>
+                    <p class="page-kicker">TEST</p>
+                    <h1 class="page-title">图片上传测试</h1>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <!-- 上传按钮由 test.js 绑定 -->
+                    <div class="toolbar">
+                        <button class="btn btn-file" id="uploadButton"><i class="fa fa-upload"></i>上传图片</button>
+                    </div>
+                    <p class="page-desc">上传成功后图片会显示在下方。</p>
+                    <img id="img" src="##">
+                </div>
+            </div>
+        </main>
+
+        <footer class="admin-footer">
+    <span>Copyright &copy; 2018 <a href="##">13blog.site</a>. All rights reserved.</span>
+    <span>my personal blog · v1.0</span>
+</footer>
+    </div>
+</div>
+
+<!-- jQuery -->
+<script src="/admin/plugins/jquery/jquery.min.js"></script>
+<!-- jQuery UI 1.11.4 -->
+<script src="/admin/plugins/jQueryUI/jquery-ui.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="/admin/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/admin/plugins/ajaxupload/ajaxupload.js"></script>
+<!-- 后台公共交互 -->
+<script src="/admin/dist/js/admin.js"></script>
+<script src="/admin/dist/js/test.js"></script>
+</body>
+</html>
