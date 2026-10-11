@@ -42,7 +42,7 @@
             <span th:text="${configurations.get('footerAbout')}">your personal blog.</span>
         </div>
         <div class="footer-meta">
-            <span th:text="${configurations.get('footerCopyRight')}">@2018 十三</span>
+            <span th:text="${configurations.get('footerCopyRight')}"></span>
             <a th:unless="${#strings.isEmpty(configurations.get('footerICP'))}"
                href="https://beian.miit.gov.cn" target="_blank" rel="noopener"
                th:text="${configurations.get('footerICP')}">ICP 备案号</a>

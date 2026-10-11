@@ -6,6 +6,7 @@ import com.site.blog.my.core.entity.BlogComment;
 import com.site.blog.my.core.entity.BlogLink;
 import com.site.blog.my.core.service.*;
 import com.site.blog.my.core.util.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +26,9 @@ import java.util.Map;
 @Controller
 public class MyBlogController {
 
-    private static final String THEME = "amaze";
+    @Value("${config.theme:amaze}")
+    private String THEME;
+
     @Resource
     private BlogService blogService;
     @Resource
