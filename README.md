@@ -1,8 +1,14 @@
 # 慢写手记 · My Blog
 
+
 一个基于 Spring Boot、MyBatis 和 Thymeleaf 的个人博客学习项目，包含博客前台和内容管理后台。当前站点以“慢写手记”为名，用来记录开发笔记、学习过程和生活中的想法。
 
 **本项目基于 [十三（ZHENFENG13）的 My-Blog](https://github.com/ZHENFENG13/My-Blog) 修改。** 博客的基础功能和项目结构来自原项目，我在此基础上进行依赖升级、界面调整、业务修复和测试补充。这个仓库用于个人学习与练习，记录阅读源码、理解功能和逐步改造的过程。
+
+前端和后台的ui借助claude重构了一下，学习后端的过程中使用了gpt6.1sol辅助学习，这两个文件是gpt生成的，用于辅助学习。ai真好用，😄
+
+- [SQL、Controller 与数据库图解](docs/sql-controller-analysis.md)
+- [多表关系与事务图解](docs/table-relations-and-transactions.md)
 
 ![慢写手记首页](static-files/personal-blog.png)
 

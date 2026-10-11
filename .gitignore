@@ -23,3 +23,11 @@
 /dist/
 /nbdist/
 /.nb-gradle/
+
+# Local analysis and runtime files
+/.audit/
+/.analysis.md
+*.log
+.env
+.env.*
+!.env.example
