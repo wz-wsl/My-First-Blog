@@ -1,12 +1,25 @@
 # My Blog
 
+本地项目已升级到 Spring Boot 4.0.8、MyBatis Spring Boot Starter 4.0.1，使用 Jakarta Servlet API。
+
+构建和运行需要 JDK 17 或更高版本，当前已在 JDK 25 上验证。IDEA 的项目 SDK、Maven 使用的 JDK 和运行配置应保持一致。
+
+```bash
+mvn clean verify
+java -jar target/my-blog-4.0.0-SNAPSHOT.jar
+```
+
+启动前，在 `src/main/resources/application.properties` 中配置数据库和图片上传目录。默认服务地址为 `http://localhost:8080`。
+
+升级回归测试位于 `src/test/java/com/site/blog/my/core/FrameworkUpgradeTests.java`，覆盖模板渲染、登录拦截、JSON 日期格式、文章表单绑定、图片上传和访问、验证码生成及错误页。测试中的文章保存使用服务替身，上传文件写入临时目录，不修改真实博客内容。
+
 ![personal-blog](static-files/personal-blog.png)
 
 **坚持不易，各位朋友如果觉得项目还不错的话可以给项目一个 star 吧，也是对我一直更新代码的一种鼓励啦，谢谢各位的支持。**
 
 ![my-blog-info](static-files/my-blog-info.png)
 
-当前分支的 Spring Boot 版本为 2.7.5，想要学习和使用其它版本可以直接点击下方的分支名称跳转至对应的仓库分支中。
+下方为原仓库的历史版本分支，可用于学习和对照；本地升级版本以上方说明为准。
 
 | 分支名称                                                    | Spring Boot Version |
 | ------------------------------------------------------------ | ------------------- |
