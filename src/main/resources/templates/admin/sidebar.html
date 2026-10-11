@@ -4,7 +4,7 @@
   侧边栏：参数 path 由后端传入，用来高亮当前菜单。
   每一项的写法都相同：序号 + 名称，当前页加 active 类。
 -->
-<aside th:fragment="sidebar-fragment(path)" class="admin-sidebar">
+<aside th:fragment="sidebar-fragment(path)" class="admin-sidebar" id="adminSidebar">
     <a class="sidebar-brand" th:href="@{/admin/index}">我的博客<small>WRITER'S DESK</small></a>
 
     <nav>

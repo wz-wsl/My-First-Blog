@@ -1,226 +1,246 @@
 var blogEditor;
-// Tags Input
-$('#blogTags').tagsInput({
-    width: '100%',
-    height: '38px',
-    defaultText: '文章标签'
-});
-
-//Initialize Select2 Elements
-$('.select2').select2()
+var draftReady = false;
+var draftBaseline;
+var draftKey;
+var draftTimer;
+var recoverableDraft;
 
 $(function () {
-    blogEditor = editormd("blog-editormd", {
-        width: "100%",
-        height: 640,
-        syncScrolling: "single",
-        path: "/admin/plugins/editormd/lib/",
-        toolbarModes: 'full',
-        /**图片上传配置*/
-        imageUpload: true,
-        imageFormats: ["jpg", "jpeg", "gif", "png", "bmp", "webp"], //图片上传格式
-        imageUploadURL: "/admin/blogs/md/uploadfile",
-        onload: function (obj) { //上传成功之后的回调
-        }
+    $('#blogTags').tagsInput({width: '100%', height: '38px', defaultText: '文章标签', onChange: scheduleDraftSave});
+    $('.select2').select2();
+    blogEditor = editormd('blog-editormd', {
+        width: '100%', height: 640, syncScrolling: 'single',
+        path: '/admin/plugins/editormd/lib/', toolbarModes: 'full',
+        imageUpload: true, imageFormats: ['jpg', 'jpeg', 'gif', 'png', 'bmp', 'webp'],
+        imageUploadURL: '/admin/blogs/md/uploadfile',
+        onload: function () {
+            blogEditor = this;
+            initializeDraftProtection();
+        },
+        onchange: scheduleDraftSave
     });
 
-    // 编辑器粘贴上传
-    document.getElementById("blog-editormd").addEventListener("paste", function (e) {
-        var clipboardData = e.clipboardData;
-        if (clipboardData) {
-            var items = clipboardData.items;
-            if (items && items.length > 0) {
-                for (var item of items) {
-                    if (item.type.startsWith("image/")) {
-                        var file = item.getAsFile();
-                        if (!file) {
-                            alert("请上传有效文件");
-                            return;
-                        }
-                        var formData = new FormData();
-                        formData.append('file', file);
-                        var xhr = new XMLHttpRequest();
-                        xhr.open("POST", "/admin/upload/file");
-                        xhr.onreadystatechange = function () {
-                            if (xhr.readyState == 4 && xhr.status == 200) {
-                                var json=JSON.parse(xhr.responseText);
-                                if (json.resultCode == 200) {
-                                    blogEditor.insertValue("![](" + json.data + ")");
-                                } else {
-                                    alert("上传失败");
-                                }
-                            }
-                        }
-                        xhr.send(formData);
-                    }
-                }
+    // 一次粘贴可能包含多张图，各自上传，不使用表单的防重复提交锁。
+    document.getElementById('blog-editormd').addEventListener('paste', function (event) {
+        var items = event.clipboardData && event.clipboardData.items;
+        if (!items) {
+            return;
+        }
+        Array.from(items).forEach(function (item) {
+            if (item.type.indexOf('image/') !== 0) {
+                return;
             }
-        }
+            var file = item.getAsFile();
+            if (!file) {
+                return;
+            }
+            var data = new FormData();
+            data.append('file', file);
+            $.ajax({
+                type: 'POST', url: '/admin/upload/file', data: data,
+                processData: false, contentType: false, dataType: 'json', timeout: 30000,
+                success: function (result) {
+                    if (result && result.resultCode == 200) {
+                        blogEditor.insertValue('![](' + result.data + ')');
+                    } else {
+                        swal(result && result.message || '图片上传失败，请重试', {icon: 'error'});
+                    }
+                },
+                error: function () {
+                    swal('图片上传失败，请重试', {icon: 'error'});
+                }
+            });
+        });
     });
-
     new AjaxUpload('#uploadCoverImage', {
-        action: '/admin/upload/file',
-        name: 'file',
-        autoSubmit: true,
-        responseType: "json",
+        action: '/admin/upload/file', name: 'file', autoSubmit: true, responseType: 'json',
         onSubmit: function (file, extension) {
-            if (!(extension && /^(jpg|jpeg|png|gif)$/.test(extension.toLowerCase()))) {
-                alert('只支持jpg、png、gif格式的文件！');
+            if (!extension || !/^(jpg|jpeg|png|gif)$/i.test(extension)) {
+                swal('只支持 jpg、jpeg、png、gif 格式的封面', {icon: 'warning'});
                 return false;
             }
         },
-        onComplete: function (file, r) {
-            if (r != null && r.resultCode == 200) {
-                $("#blogCoverImage").attr("src", r.data);
-                $("#blogCoverImage").attr("style", "width: 128px;height: 128px;display:block;");
-                return false;
+        onComplete: function (file, result) {
+            if (result && result.resultCode == 200) {
+                setCoverImage(result.data);
             } else {
-                alert("error");
+                swal(result && result.message || '封面上传失败，请重试', {icon: 'error'});
             }
         }
     });
 });
 
-$('#confirmButton').click(function () {
-    var blogTitle = $('#blogName').val();
-    var blogSubUrl = $('#blogSubUrl').val();
-    var blogCategoryId = $('#blogCategoryId').val();
-    var blogTags = $('#blogTags').val();
-    var blogContent = blogEditor.getMarkdown();
-    if (isNull(blogTitle)) {
-        swal("请输入文章标题", {
-            icon: "error",
-        });
+function setCoverImage(url) {
+    $('#blogCoverImage').attr('src', url).attr('style', 'width:128px;height:96px;');
+    scheduleDraftSave();
+}
+
+/** 两个保存入口共用校验，弹窗打开后改动字段也不会绕过最终检查。 */
+function validateArticle(draft, requireCover) {
+    var error = isNull(draft.title) ? '请输入文章标题'
+        : !validLength(draft.title, 150) ? '标题不能超过 150 字'
+        : !validLength(draft.path, 150) ? '路径不能超过 150 字'
+        : isNull(draft.category) ? '请选择文章分类'
+        : isNull(draft.tags) ? '请输入文章标签'
+        : !validLength(draft.tags, 150) ? '标签不能超过 150 字'
+        : isNull(draft.content) ? '请输入文章内容'
+        : !validLength(draft.content, 100000) ? '文章内容不能超过 100000 字'
+        : requireCover && (isNull(draft.cover) || draft.cover.indexOf('img-upload') !== -1) ? '请选择封面图片'
+        : '';
+    if (error) {
+        swal(error, {icon: 'warning'});
+    }
+    return !error;
+}
+
+$('#confirmButton').on('click', function () {
+    if (!draftReady) {
+        swal('编辑器正在加载，请稍后再试', {icon: 'info'});
         return;
     }
-    if (!validLength(blogTitle, 150)) {
-        swal("标题过长", {
-            icon: "error",
-        });
-        return;
+    if (validateArticle(articleSnapshot(), false)) {
+        updateSaveLabel();
+        $('#articleModal').modal('show');
     }
-    if (!validLength(blogSubUrl, 150)) {
-        swal("路径过长", {
-            icon: "error",
-        });
-        return;
-    }
-    if (isNull(blogCategoryId)) {
-        swal("请选择文章分类", {
-            icon: "error",
-        });
-        return;
-    }
-    if (isNull(blogTags)) {
-        swal("请输入文章标签", {
-            icon: "error",
-        });
-        return;
-    }
-    if (!validLength(blogTags, 150)) {
-        swal("标签过长", {
-            icon: "error",
-        });
-        return;
-    }
-    if (isNull(blogContent)) {
-        swal("请输入文章内容", {
-            icon: "error",
-        });
-        return;
-    }
-    if (!validLength(blogTags, 100000)) {
-        swal("文章内容过长", {
-            icon: "error",
-        });
-        return;
-    }
-    $('#articleModal').modal('show');
 });
 
-$('#saveButton').click(function () {
-    var blogId = $('#blogId').val();
-    var blogTitle = $('#blogName').val();
-    var blogSubUrl = $('#blogSubUrl').val();
-    var blogCategoryId = $('#blogCategoryId').val();
-    var blogTags = $('#blogTags').val();
-    var blogContent = blogEditor.getMarkdown();
-    var blogCoverImage = $('#blogCoverImage')[0].src;
-    var blogStatus = $("input[name='blogStatus']:checked").val();
-    var enableComment = $("input[name='enableComment']:checked").val();
-    if (isNull(blogCoverImage) || blogCoverImage.indexOf('img-upload') != -1) {
-        swal("封面图片不能为空", {
-            icon: "error",
-        });
+$('#saveButton').on('click', function () {
+    if (!draftReady) {
         return;
     }
-    var url = '/admin/blogs/save';
-    var swlMessage = '保存成功';
+    var draft = articleSnapshot();
+    if (!validateArticle(draft, true)) {
+        return;
+    }
+    var blogId = $('#blogId').val();
     var data = {
-        "blogTitle": blogTitle, "blogSubUrl": blogSubUrl, "blogCategoryId": blogCategoryId,
-        "blogTags": blogTags, "blogContent": blogContent, "blogCoverImage": blogCoverImage, "blogStatus": blogStatus,
-        "enableComment": enableComment
+        blogTitle: draft.title, blogSubUrl: draft.path, blogCategoryId: draft.category,
+        blogTags: draft.tags, blogContent: draft.content, blogCoverImage: draft.cover,
+        blogStatus: draft.status, enableComment: draft.comments
     };
     if (blogId > 0) {
-        url = '/admin/blogs/update';
-        swlMessage = '修改成功';
-        data = {
-            "blogId": blogId,
-            "blogTitle": blogTitle,
-            "blogSubUrl": blogSubUrl,
-            "blogCategoryId": blogCategoryId,
-            "blogTags": blogTags,
-            "blogContent": blogContent,
-            "blogCoverImage": blogCoverImage,
-            "blogStatus": blogStatus,
-            "enableComment": enableComment
-        };
+        data.blogId = blogId;
     }
-    console.log(data);
-    $.ajax({
-        type: 'POST',//方法类型
-        url: url,
-        data: data,
-        success: function (result) {
-            if (result.resultCode == 200) {
-                $('#articleModal').modal('hide');
-                swal({
-                    title: swlMessage,
-                    type: 'success',
-                    showCancelButton: false,
-                    confirmButtonColor: '#3085d6',
-                    confirmButtonText: '返回博客列表',
-                    confirmButtonClass: 'btn btn-success',
-                    buttonsStyling: false
-                }).then(function () {
-                    window.location.href = "/admin/blogs";
-                })
-            }
-            else {
-                $('#articleModal').modal('hide');
-                swal(result.message, {
-                    icon: "error",
-                });
-            }
-            ;
-        },
-        error: function () {
-            swal("操作失败", {
-                icon: "error",
+    AdminUI.request({
+        type: 'POST', url: blogId > 0 ? '/admin/blogs/update' : '/admin/blogs/save', data: data,
+        success: function () {
+            // 只把提交时的快照标为已保存，请求期间继续写的内容仍保留为草稿。
+            draftBaseline = JSON.stringify(draft);
+            recoverableDraft = null;
+            $('#draftRecovery').prop('hidden', true);
+            saveLocalDraft();
+            $('#articleModal').modal('hide');
+            swal({
+                title: draft.status == 1 ? '文章已发布' : '草稿已保存',
+                icon: 'success', button: '返回文章列表',
+                closeOnEsc: false, closeOnClickOutside: false
+            }).then(function () {
+                window.location.href = '/admin/blogs';
             });
         }
     });
 });
 
-$('#cancelButton').click(function () {
-    window.location.href = "/admin/blogs";
+$('#cancelButton').on('click', function () {
+    window.location.href = '/admin/blogs';
 });
 
-/**
- * 随机封面功能
- */
-$('#randomCoverImage').click(function () {
-    var rand = parseInt(Math.random() * 40 + 1);
-    $("#blogCoverImage").attr("src", '/admin/dist/img/rand/' + rand + ".jpg");
-    $("#blogCoverImage").attr("style", "width:160px ;height: 120px;display:block;");
+$('#randomCoverImage').on('click', function () {
+    setCoverImage('/admin/dist/img/rand/' + (Math.floor(Math.random() * 40) + 1) + '.jpg');
 });
+
+/** 快照只保存当前文章的编辑字段，按账号与文章 ID 隔离本地草稿。 */
+function articleSnapshot() {
+    return {
+        title: $('#blogName').val(), path: $('#blogSubUrl').val(),
+        category: $('#blogCategoryId').val(), tags: $('#blogTags').val(),
+        content: blogEditor.getMarkdown(), cover: $('#blogCoverImage').attr('src'),
+        status: $('input[name="blogStatus"]:checked').val(),
+        comments: $('input[name="enableComment"]:checked').val()
+    };
+}
+
+function saveLocalDraft() {
+    if (!draftReady) {
+        return;
+    }
+    var draft = articleSnapshot();
+    var changed = JSON.stringify(draft) !== draftBaseline;
+    try {
+        if (changed) {
+            localStorage.setItem(draftKey, JSON.stringify(draft));
+            $('#draftStatus').text('本地草稿已暂存，修改尚未保存到网站');
+        } else if (!recoverableDraft) {
+            localStorage.removeItem(draftKey);
+            $('#draftStatus').text('当前没有未保存的修改');
+        }
+    } catch (error) {
+        $('#draftStatus').text('本地草稿暂存失败，请及时保存到网站');
+    }
+}
+
+function scheduleDraftSave() {
+    if (!draftReady) {
+        return;
+    }
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(saveLocalDraft, 500);
+}
+
+function initializeDraftProtection() {
+    draftBaseline = JSON.stringify(articleSnapshot());
+    draftKey = 'my-blog:draft:v1:' + $('#blogForm').attr('data-draft-owner') + ':' + $('#blogId').val();
+    draftReady = true;
+    $('#draftStatus').text('当前没有未保存的修改');
+    try {
+        var saved = localStorage.getItem(draftKey);
+        var parsed = saved ? JSON.parse(saved) : null;
+        if (parsed && typeof parsed.content === 'string' && JSON.stringify(parsed) !== draftBaseline) {
+            recoverableDraft = parsed;
+            $('#draftRecovery').prop('hidden', false);
+        }
+    } catch (error) {
+        $('#draftStatus').text('无法读取本地草稿，请及时保存到网站');
+    }
+    $('#blogForm, #articleModal').on('input change', scheduleDraftSave);
+    $('#restoreDraftButton').on('click', function () {
+        if (!recoverableDraft) {
+            return;
+        }
+        var draft = recoverableDraft;
+        $('#blogName').val(draft.title);
+        $('#blogSubUrl').val(draft.path);
+        $('#blogCategoryId').val(draft.category).trigger('change');
+        $('#blogTags').importTags(draft.tags || '');
+        blogEditor.setMarkdown(draft.content);
+        $('#blogCoverImage').attr('src', draft.cover);
+        $('#publish').prop('checked', draft.status == 1);
+        $('#draft').prop('checked', draft.status != 1);
+        $('#enableCommentTrue').prop('checked', draft.comments == 0);
+        $('#enableCommentFalse').prop('checked', draft.comments != 0);
+        recoverableDraft = null;
+        $('#draftRecovery').prop('hidden', true);
+        updateSaveLabel();
+        saveLocalDraft();
+    });
+    $('#discardDraftButton').on('click', function () {
+        recoverableDraft = null;
+        $('#draftRecovery').prop('hidden', true);
+        saveLocalDraft();
+    });
+    // 刷新、返回列表和关闭页面统一使用浏览器的离开确认；失败时仍保留草稿。
+    window.addEventListener('beforeunload', function (event) {
+        if (JSON.stringify(articleSnapshot()) !== draftBaseline) {
+            saveLocalDraft();
+            event.preventDefault();
+            event.returnValue = '';
+        }
+    });
+    updateSaveLabel();
+}
+
+function updateSaveLabel() {
+    $('#saveButton').text($('#publish').prop('checked') ? '发布文章' : '保存草稿');
+}
+
+$('input[name="blogStatus"]').on('change', updateSaveLabel);

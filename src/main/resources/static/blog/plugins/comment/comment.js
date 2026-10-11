@@ -1,74 +1,59 @@
-$('#commentSubmit').click(function () {
-    var blogId = $('#blogId').val();
-    var verifyCode = $('#verifyCode').val();
-    var commentator = $('#commentator').val();
-    var email = $('#email').val();
-    var websiteUrl = $('#websiteUrl').val();
-    var commentBody = $('#commentBody').val();
-    if (isNull(blogId)) {
-        swal("参数异常", {
-            icon: "warning",
-        });
-        return;
-    }
-    if (isNull(commentator)) {
-        swal("请输入你的称呼", {
-            icon: "warning",
-        });
-        return;
-    }
-    if (isNull(email)) {
-        swal("请输入你的邮箱", {
-            icon: "warning",
-        });
-        return;
-    }
-    if (isNull(verifyCode)) {
-        swal("请输入验证码", {
-            icon: "warning",
-        });
-        return;
-    }
-    if (!validCN_ENString2_100(commentator)) {
-        swal("请输入符合规范的名称(不要输入特殊字符)", {
-            icon: "warning",
-        });
-        return;
-    }
-    if (!validCN_ENString2_100(commentBody)) {
-        swal("请输入符合规范的评论内容(不要输入特殊字符)", {
-            icon: "warning",
-        });
+var commentSubmitting = false;
+
+$('#commentSubmit').on('click', function () {
+    if (commentSubmitting) {
         return;
     }
     var data = {
-        "blogId": blogId, "verifyCode": verifyCode, "commentator": commentator,
-        "email": email, "websiteUrl": websiteUrl, "commentBody": commentBody
+        blogId: $('#blogId').val(),
+        verifyCode: $('#verifyCode').val().trim(),
+        commentator: $('#commentator').val().trim(),
+        email: $('#email').val().trim(),
+        websiteUrl: $('#websiteUrl').val().trim(),
+        commentBody: $('#commentBody').val().trim()
     };
-    console.log(data);
+    if (isNull(data.blogId)) {
+        swal('参数异常，请刷新页面', {icon: 'warning'});
+        return;
+    }
+    if (!validCN_ENString2_100(data.commentator)) {
+        swal('请输入 2–100 字的中英文称呼', {icon: 'warning'});
+        return;
+    }
+    if (isNull(data.email) || !$('#email')[0].validity.valid) {
+        swal('请输入正确的邮箱地址', {icon: 'warning'});
+        return;
+    }
+    if (!validCommentBody(data.commentBody)) {
+        swal('评论不能为空，且不能超过 200 字', {icon: 'warning'});
+        return;
+    }
+    if (isNull(data.verifyCode)) {
+        swal('请输入验证码', {icon: 'warning'});
+        return;
+    }
+    commentSubmitting = true;
+    var $button = $('#commentSubmit');
+    var originalLabel = $button.html();
+    $button.prop('disabled', true).text('提交中…');
     $.ajax({
-        type: 'POST',//方法类型
-        url: '/blog/comment',
-        data: data,
+        type: 'POST', url: '/blog/comment', dataType: 'json', timeout: 30000, data: data,
         success: function (result) {
-            if (result.resultCode == 200) {
-                swal("评论提交成功请等待博主审核", {
-                    icon: "success",
-                });
-                $('#commentBody').val('');
-                $('#verifyCode').val('');
+            if (result && result.resultCode == 200 && result.data !== false) {
+                swal('评论提交成功，请等待博主审核', {icon: 'success'});
+                $('#commentBody, #verifyCode').val('');
+                $('.captcha-refresh').trigger('click');
+            } else {
+                // 业务失败时保留正文，避免用户重新输入。
+                swal(result && result.message || '评论提交失败，请重试', {icon: 'error'});
             }
-            else {
-                swal(result.message, {
-                    icon: "error",
-                });
-            }
-            ;
         },
         error: function () {
-            swal("操作失败", {
-                icon: "error",
-            });
+            swal('请求失败，请检查网络后重试', {icon: 'error'});
+        },
+        complete: function () {
+            commentSubmitting = false;
+            $button.prop('disabled', false).html(originalLabel);
         }
     });
 });

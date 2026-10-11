@@ -56,6 +56,10 @@ public class CommentController {
         if (commentId == null || commentId < 1 || !StringUtils.hasText(replyBody)) {
             return ResultGenerator.genFailResult("参数异常！");
         }
+        // 与前台评论、后台回复输入框及数据库字段的 200 字上限保持一致。
+        if (replyBody.trim().length() > 200) {
+            return ResultGenerator.genFailResult("回复内容不能超过200字！");
+        }
         if (commentService.reply(commentId, replyBody)) {
             return ResultGenerator.genSuccessResult();
         } else {

@@ -1,171 +1,96 @@
+// 用接口原始数据回填表单，不从格式化后的图片 HTML 中反推字段。
+var categoryRows = {};
+
 $(function () {
-    $("#jqGrid").jqGrid({
-        url: '/admin/categories/list',
-        datatype: "json",
+    AdminUI.initGrid({
+        url: '/admin/categories/list', minWidth: 560,
         colModel: [
-            {label: 'id', name: 'categoryId', index: 'categoryId', width: 50, key: true, hidden: true},
-            {label: '分类名称', name: 'categoryName', index: 'categoryName', width: 240},
-            {label: '分类图标', name: 'categoryIcon', index: 'categoryIcon', width: 120, formatter: imgFormatter},
-            {label: '添加时间', name: 'createTime', index: 'createTime', width: 120}
+            {label: 'id', name: 'categoryId', width: 50, key: true, hidden: true},
+            {label: '分类名称', name: 'categoryName', width: 240},
+            {label: '分类图标', name: 'categoryIcon', width: 120, formatter: imgFormatter},
+            {label: '添加时间', name: 'createTime', width: 120}
         ],
-        height: 560,
-        rowNum: 10,
-        rowList: [10, 20, 50],
-        styleUI: 'Bootstrap',
-        loadtext: '信息读取中...',
-        rownumbers: false,
-        rownumWidth: 20,
-        autowidth: true,
-        multiselect: true,
-        pager: "#jqGridPager",
-        jsonReader: {
-            root: "data.list",
-            page: "data.currPage",
-            total: "data.totalPage",
-            records: "data.totalCount"
-        },
-        prmNames: {
-            page: "page",
-            rows: "limit",
-            order: "order",
-        },
-        gridComplete: function () {
-            //隐藏grid底部滚动条
-            $("#jqGrid").closest(".ui-jqgrid-bdiv").css({"overflow-x": "hidden"});
+        loadComplete: function (result) {
+            categoryRows = {};
+            if (result && result.resultCode == 200 && result.data && Array.isArray(result.data.list)) {
+                result.data.list.forEach(function (category) {
+                    categoryRows[category.categoryId] = category;
+                });
+            }
         }
     });
-
-    jQuery("select.image-picker").imagepicker({
-        hide_select: false,
+    $('#categoryIcon').imagepicker({hide_select: false});
+    $('#categoryForm').on('submit', function (event) {
+        event.preventDefault();
+        $('#saveButton').trigger('click');
     });
-
-    jQuery("select.image-picker.show-labels").imagepicker({
-        hide_select: false,
-        show_label: true,
-    });
-    $(window).resize(function () {
-        $("#jqGrid").setGridWidth($(".card-body").width());
-    });
-    var container = jQuery("select.image-picker.masonry").next("ul.thumbnails");
-    container.imagesLoaded(function () {
-        container.masonry({
-            itemSelector: "li",
-        });
-    });
-
 });
 
-function imgFormatter(cellvalue) {
-    return "<a href='" + cellvalue + "'> <img src='" + cellvalue + "' height=\"64\" width=\"64\" alt='icon'/></a>";
+function imgFormatter(value) {
+    return $('<img alt="分类图标" width="48" height="48">').attr('src', value)[0].outerHTML;
 }
 
-/**
- * jqGrid重新加载
- */
 function reload() {
-    var page = $("#jqGrid").jqGrid('getGridParam', 'page');
-    $("#jqGrid").jqGrid('setGridParam', {
-        page: page
-    }).trigger("reloadGrid");
+    AdminUI.reloadGrid();
+}
+
+function setCategoryIcon(value) {
+    // change 事件同时同步 image-picker 的缩略图选中状态。
+    $('#categoryIcon').val(value).trigger('change');
+}
+
+function reset() {
+    $('#categoryId, #categoryName').val('');
+    $('#edit-error-msg').hide().text('');
+    setCategoryIcon($('#categoryIcon option:first').val());
 }
 
 function categoryAdd() {
     reset();
-    $('.modal-title').html('分类添加');
+    $('#categoryModalLabel').text('新增分类');
     $('#categoryModal').modal('show');
 }
 
-//绑定modal上的保存按钮
-$('#saveButton').click(function () {
-    var categoryName = $("#categoryName").val();
-    if (!validCN_ENString2_18(categoryName)) {
-        $('#edit-error-msg').css("display", "block");
-        $('#edit-error-msg').html("请输入符合规范的分类名称！");
-    } else {
-        var params = $("#categoryForm").serialize();
-        var url = '/admin/categories/save';
-        var id = getSelectedRowWithoutAlert();
-        if (id != null) {
-            url = '/admin/categories/update';
-        }
-        $.ajax({
-            type: 'POST',//方法类型
-            url: url,
-            data: params,
-            success: function (result) {
-                if (result.resultCode == 200) {
-                    $('#categoryModal').modal('hide');
-                    swal("保存成功", {
-                        icon: "success",
-                    });
-                    reload();
-                }
-                else {
-                    $('#categoryModal').modal('hide');
-                    swal(result.message, {
-                        icon: "error",
-                    });
-                }
-                ;
-            },
-            error: function () {
-                swal("操作失败", {
-                    icon: "error",
-                });
-            }
-        });
-    }
-});
-
 function categoryEdit() {
-    reset();
     var id = getSelectedRow();
     if (id == null) {
         return;
     }
-    $('.modal-title').html('分类编辑');
-    $('#categoryModal').modal('show');
-    $("#categoryId").val(id);
-}
-
-function deleteCagegory() {
-    var ids = getSelectedRows();
-    if (ids == null) {
+    var category = categoryRows[id];
+    if (!category) {
+        swal('分类数据已失效，请刷新列表后重试', {icon: 'warning'});
         return;
     }
-    swal({
-        title: "确认弹框",
-        text: "确认要删除数据吗?",
-        icon: "warning",
-        buttons: true,
-        dangerMode: true,
-    }).then((flag) => {
-            if (flag) {
-                $.ajax({
-                    type: "POST",
-                    url: "/admin/categories/delete",
-                    contentType: "application/json",
-                    data: JSON.stringify(ids),
-                    success: function (r) {
-                        if (r.resultCode == 200) {
-                            swal("删除成功", {
-                                icon: "success",
-                            });
-                            $("#jqGrid").trigger("reloadGrid");
-                        } else {
-                            swal(r.message, {
-                                icon: "error",
-                            });
-                        }
-                    }
-                });
-            }
-        }
-    );
+    reset();
+    $('#categoryId').val(id);
+    $('#categoryName').val(category.categoryName);
+    setCategoryIcon(category.categoryIcon);
+    $('#categoryModalLabel').text('编辑分类');
+    $('#categoryModal').modal('show');
 }
 
+$('#saveButton').on('click', function () {
+    var name = $('#categoryName').val().trim();
+    if (!validCN_ENString2_18(name)) {
+        $('#edit-error-msg').show().text('分类名称需为 2–18 个中英文字符、数字或允许的分隔符');
+        $('#categoryName').trigger('focus');
+        return;
+    }
+    $('#categoryName').val(name);
+    $('#edit-error-msg').hide().text('');
+    // 弹窗 ID 决定保存模式，表格上勾选的旧行不会影响新增操作。
+    var id = $('#categoryId').val();
+    AdminUI.request({
+        type: 'POST', url: id ? '/admin/categories/update' : '/admin/categories/save',
+        data: $('#categoryForm').serialize(),
+        success: function () {
+            $('#categoryModal').modal('hide');
+            swal('保存成功', {icon: 'success'});
+            reload();
+        }
+    });
+});
 
-function reset() {
-    $("#categoryName").val('');
-    $("#categoryIcon option:first").prop("selected", 'selected');
+function deleteCagegory() {
+    AdminUI.confirmBatch('/admin/categories/delete', getSelectedRows(), '确认删除选中的分类吗？', '删除成功');
 }

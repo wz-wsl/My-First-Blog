@@ -1,41 +1,16 @@
-/**
- * 判空
- *
- * @param obj
- * @returns {boolean}
- */
-function isNull(obj) {
-    if (obj == null || obj == undefined || obj.trim() == "") {
-        return true;
-    }
-    return false;
+function isNull(value) {
+    return value == null || String(value).trim() === '';
 }
 
-/**
- * 参数长度验证
- *
- * @param obj
- * @param length
- * @returns {boolean}
- */
-function validLength(obj, length) {
-    if (obj.trim().length < length) {
-        return true;
-    }
-    return false;
+/** 最大长度包含边界；正文只校验必填与长度，允许正常标点和换行。 */
+function validLength(value, limit) {
+    return value != null && String(value).trim().length <= limit;
 }
 
-/**
- * 正则匹配2-100位的中英文字符串
- *
- * @param str
- * @returns {boolean}
- */
-function validCN_ENString2_100(str) {
-    var pattern = /^[a-zA-Z0-9-\u4E00-\u9FA5_,， ]{2,100}$/;
-    if (pattern.test(str.trim())) {
-        return (true);
-    } else {
-        return (false);
-    }
+function validCommentBody(value) {
+    return !isNull(value) && validLength(value, 200);
+}
+
+function validCN_ENString2_100(value) {
+    return value != null && /^[a-zA-Z0-9-\u4E00-\u9FA5_,， ]{2,100}$/.test(String(value).trim());
 }

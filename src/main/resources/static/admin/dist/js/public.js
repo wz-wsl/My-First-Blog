@@ -1,4 +1,3 @@
-<!-- 正则验证 start-->
 /**
  * 判空
  *
@@ -20,10 +19,13 @@ function isNull(obj) {
  * @returns {boolean}
  */
 function validLength(obj, length) {
-    if (obj.trim().length < length) {
-        return true;
-    }
-    return false;
+    // 最大长度包含边界；是否必填由调用方单独判断。
+    return obj != null && String(obj).trim().length <= length;
+}
+
+/** 正文允许标点、表情和换行，不复用名称的字符白名单。 */
+function validCommentBody(value) {
+    return !isNull(value) && validLength(value, 200);
 }
 
 /**
@@ -110,7 +112,6 @@ function validPassword(password) {
     }
 }
 
-<!-- 正则验证 end-->
 
 /**
  * 获取jqGrid选中的一条记录
@@ -167,3 +168,125 @@ function getSelectedRows() {
     }
     return grid.getGridParam("selarrrow");
 }
+
+/** 共用请求与表格行为；页面只提供业务字段和成功后的操作。 */
+var AdminUI = (function () {
+    var pending = {};
+
+    function showError(message) {
+        swal(message || '操作失败，请重试', {icon: 'error'});
+    }
+
+    function request(options) {
+        var key = (options.type || 'GET') + ':' + options.url;
+        if (pending[key]) {
+            return; // 请求未结束时不再次发送，避免快速连点重复提交。
+        }
+        var $buttons = options.buttons || $('.toolbar button, .page-actions button, #saveButton');
+        if ($buttons.length && $buttons.filter(':disabled').length === $buttons.length) {
+            return;
+        }
+        var states = [];
+        $buttons.each(function () {
+            states.push({element: this, disabled: this.disabled, html: this.innerHTML});
+        });
+        $buttons.prop('disabled', true);
+        if (options.busyText) {
+            $buttons.text(options.busyText);
+        }
+        pending[key] = true;
+        var settings = $.extend({}, options, {
+            dataType: 'json',
+            timeout: options.timeout || 30000,
+            success: function (result) {
+                if (!result || result.resultCode != 200) {
+                    showError(result && result.message);
+                    return; // 失败不关闭表单，保留输入供用户修正。
+                }
+                if (options.success) {
+                    options.success(result);
+                }
+            },
+            error: function (xhr, status) {
+                var message = xhr.status === 401 || xhr.status === 403 || status === 'parsererror'
+                    ? '登录可能已失效，请重新登录后重试'
+                    : status === 'timeout' ? '请求超时，请重试' : '网络请求失败，请重试';
+                showError(message);
+            },
+            complete: function () {
+                delete pending[key];
+                states.forEach(function (state) {
+                    state.element.disabled = state.disabled;
+                    state.element.innerHTML = state.html;
+                });
+                if (options.complete) {
+                    options.complete();
+                }
+            }
+        });
+        delete settings.buttons;
+        delete settings.busyText;
+        return $.ajax(settings);
+    }
+
+    function initGrid(options) {
+        var $grid = $('#jqGrid');
+        var minWidth = options.minWidth || 720;
+        var $feedback = $('<p class="grid-feedback" role="status" aria-live="polite" hidden></p>');
+        var loadComplete = options.loadComplete;
+        var settings = $.extend({
+            datatype: 'json', height: 'auto', rowNum: 10, rowList: [10, 20, 50],
+            styleUI: 'Bootstrap', loadtext: '信息读取中…', autowidth: true,
+            multiselect: true, pager: '#jqGridPager',
+            jsonReader: {root: 'data.list', page: 'data.currPage', total: 'data.totalPage', records: 'data.totalCount'},
+            prmNames: {page: 'page', rows: 'limit', order: 'order'},
+            ajaxGridOptions: {dataType: 'json', timeout: 30000}
+        }, options, {
+            loadComplete: function (result) {
+                var valid = result && result.resultCode == 200 && result.data && Array.isArray(result.data.list);
+                $feedback.prop('hidden', !!valid).text(valid ? '' : (result && result.message) || '加载失败，请重新加载页面');
+                if (loadComplete) {
+                    loadComplete(result);
+                }
+            },
+            loadError: function () {
+                $feedback.prop('hidden', false).text('加载失败，请检查网络或重新登录后重试');
+            }
+        });
+        delete settings.minWidth;
+        $grid.jqGrid(settings);
+        // 列宽保持可读，窄屏由外层滚动容器承接溢出。
+        $grid.closest('.ui-jqgrid').wrap('<div class="grid-scroll" tabindex="0" role="region" aria-label="数据表格，可横向滚动"></div>');
+        var $scroll = $grid.closest('.grid-scroll');
+        $feedback.insertBefore($scroll);
+        function resize() {
+            $grid.jqGrid('setGridWidth', Math.max(minWidth, $scroll.width()));
+        }
+        $(window).on('resize.adminGrid', resize);
+        resize();
+    }
+
+    function reloadGrid() {
+        $('#jqGrid').trigger('reloadGrid');
+    }
+
+    function confirmBatch(url, ids, message, successMessage) {
+        if (!ids || !ids.length) {
+            return;
+        }
+        swal({title: '确认操作', text: message, icon: 'warning', buttons: ['取消', '确认'], dangerMode: true})
+            .then(function (confirmed) {
+                if (confirmed) {
+                    request({
+                        type: 'POST', url: url, contentType: 'application/json', data: JSON.stringify(ids),
+                        success: function () {
+                            swal(successMessage, {icon: 'success'});
+                            reloadGrid();
+                        }
+                    });
+                }
+            });
+    }
+
+    return {request: request, initGrid: initGrid, reloadGrid: reloadGrid, confirmBatch: confirmBatch};
+})();

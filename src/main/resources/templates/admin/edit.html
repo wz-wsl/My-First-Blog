@@ -19,18 +19,25 @@
                 </div>
                 <div class="page-actions">
                     <button class="btn btn-default" id="cancelButton">返回文章列表</button>
-                    <button class="btn btn-primary btn-raised" id="confirmButton"><i class="fa fa-check"></i>保存文章</button>
+                    <button class="btn btn-primary btn-raised" id="confirmButton"><i class="fa fa-check"></i>保存 / 发布</button>
                 </div>
             </div>
 
+            <div id="draftRecovery" class="alert alert-info" hidden>
+                发现尚未保存到网站的本地草稿。
+                <button type="button" class="btn btn-default btn-sm" id="restoreDraftButton">恢复草稿</button>
+                <button type="button" class="btn btn-default btn-sm" id="discardDraftButton">丢弃本地草稿</button>
+            </div>
+            <p id="draftStatus" class="page-desc" role="status" aria-live="polite"></p>
             <div class="card">
                 <div class="card-body">
-                    <form id="blogForm" onsubmit="return false;">
+                    <form id="blogForm" onsubmit="return false;" th:attr="data-draft-owner=${session.loginUserId}">
                         <input type="hidden" id="blogId" name="blogId"
                                th:value="${blog!=null and blog.blogId!=null }?${blog.blogId}: 0">
 
                         <!-- 标题 -->
                         <div class="form-group">
+                            <label for="blogName" class="sr-only">文章标题</label>
                             <input type="text" class="form-control title-input" id="blogName" name="blogName"
                                    placeholder="文章标题（必填）"
                                    th:value="${blog!=null and blog.blogTitle!=null }?${blog.blogTitle}: ''"
@@ -119,13 +126,12 @@
                         <span class="control-label">文章状态</span>
                         <label class="radio-option">
                             <input name="blogStatus" type="radio" id="publish"
-                                   checked=true
-                                   th:checked="${null==blog||(null !=blog and null !=blog.blogStatus and blog.blogStatus==1)} ?true:false"
+                                   th:checked="${blog != null and blog.blogStatus == 1}"
                                    value="1"/>发布
                         </label>
                         <label class="radio-option">
                             <input name="blogStatus" type="radio" id="draft" value="0"
-                                   th:checked="${null !=blog and null !=blog.blogStatus and blog.blogStatus==0} ?true:false"/>草稿
+                                   th:checked="${blog == null or blog.blogStatus == 0}"/>草稿
                         </label>
                     </div>
                     <div class="form-group radio-group">
@@ -144,7 +150,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" id="saveButton">确认</button>
+                <button type="button" class="btn btn-primary" id="saveButton">保存草稿</button>
             </div>
         </div>
     </div>

@@ -10,6 +10,8 @@ $(function () {
             $.ajax({
                 type: "POST",
                 url: "/admin/profile/name",
+                dataType: 'text',
+                timeout: 30000,
                 data: params,
                 success: function (r) {
                     if (r == 'success') {
@@ -18,6 +20,12 @@ $(function () {
                         alert('修改失败');
                         $("#updateUserNameButton").prop("disabled",false);
                     }
+                },
+                error: function () {
+                    alert('请求失败，请检查网络后重试');
+                },
+                complete: function () {
+                    $('#updateUserNameButton').prop('disabled', false);
                 }
             });
         } else {
@@ -34,9 +42,10 @@ $(function () {
             $.ajax({
                 type: "POST",
                 url: "/admin/profile/password",
+                dataType: 'text',
+                timeout: 30000,
                 data: params,
                 success: function (r) {
-                    console.log(r);
                     if (r == 'success') {
                         alert('修改成功');
                         window.location.href = '/admin/login';
@@ -44,6 +53,12 @@ $(function () {
                         alert('修改失败');
                         $("#updatePasswordButton").attr("disabled",false);
                     }
+                },
+                error: function () {
+                    alert('请求失败，请检查网络后重试');
+                },
+                complete: function () {
+                    $('#updatePasswordButton').prop('disabled', false);
                 }
             });
         } else {

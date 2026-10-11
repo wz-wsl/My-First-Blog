@@ -27,13 +27,25 @@ function renderGreeting() {
  * @param $box     数据填充的容器，用来显示「暂无」或「加载失败」
  */
 function fetchFirstPage(url, limit, onList, $box) {
+    $box.empty().append($('<p class="empty-tip" role="status"></p>').text('加载中…'));
+    function showFailure(message) {
+        $box.empty().append($('<p class="empty-tip" role="status"></p>').text(message));
+        $('<button type="button" class="btn btn-default btn-sm">重新加载</button>')
+            .on('click', function () { fetchFirstPage(url, limit, onList, $box); }).appendTo($box);
+    }
     $.ajax({
         type: 'GET',
         url: url,
+        dataType: 'json',
+        timeout: 30000,
         data: {page: 1, limit: limit},
         success: function (result) {
-            var list = result && result.resultCode == 200 && result.data ? result.data.list : null;
-            if (list && list.length) {
+            if (!result || result.resultCode != 200 || !result.data || !Array.isArray(result.data.list)) {
+                showFailure(result && result.message || '加载失败，请重试');
+                return;
+            }
+            var list = result.data.list;
+            if (list.length) {
                 $box.empty();
                 onList(list);
             } else {
@@ -41,7 +53,7 @@ function fetchFirstPage(url, limit, onList, $box) {
             }
         },
         error: function () {
-            $box.html('<p class="empty-tip">加载失败，请刷新重试</p>');
+            showFailure('加载失败，请检查网络或重新登录后重试');
         }
     });
 }

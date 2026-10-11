@@ -5,6 +5,16 @@
  */
 
 /* ======================= jqGrid 表格 ======================= */
+.grid-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.grid-feedback {
+  margin-bottom: 12px;
+  color: var(--danger);
+}
+
 .ui-jqgrid {
   overflow: hidden;
   font-size: 13px;

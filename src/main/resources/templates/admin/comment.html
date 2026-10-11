@@ -46,11 +46,10 @@
             </div>
             <div class="modal-body">
                 <form id="replyForm">
-                    <input type="hidden" class="form-control" id="categoryId" name="categoryId">
                     <div class="form-group">
                         <label for="replyBody" class="control-label">回复内容</label>
                         <textarea class="form-control" id="replyBody" name="replyBody"
-                                  placeholder="请输入回复内容" required="true"></textarea>
+                                  placeholder="请输入回复内容（最多 200 字）" maxlength="200" required="true"></textarea>
                     </div>
                 </form>
             </div>

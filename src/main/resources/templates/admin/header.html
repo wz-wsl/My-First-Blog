@@ -19,7 +19,8 @@
 
 <!-- 顶部栏：小屏幕菜单按钮 + 日期 + 快捷链接 -->
 <header class="admin-topbar" th:fragment="header-nav">
-    <button type="button" class="topbar-toggle" data-toggle-sidebar aria-label="打开菜单">
+    <button type="button" class="topbar-toggle" data-toggle-sidebar aria-label="打开菜单"
+            aria-expanded="false" aria-controls="adminSidebar">
         <i class="fa fa-bars"></i>
     </button>
     <!-- 日期由 admin.js 填充 -->
