@@ -178,7 +178,8 @@ class BlogTransactionTests {
     void validationFailureDoesNotWriteAnything() {
         Blog article = article(null);
         article.setBlogTags("a,b,c,d,e,f,g");
-        assertEquals("标签数量限制为6", service.saveBlog(article));
+        BlogWriteException exception = assertThrows(BlogWriteException.class, () -> service.saveBlog(article));
+        assertEquals("标签数量限制为6", exception.getMessage());
         assertEquals(0, count("tb_blog"));
         assertEquals(1, count("tb_blog_tag"));
         assertEquals(0, count("tb_blog_tag_relation"));
@@ -203,6 +204,78 @@ class BlogTransactionTests {
             assertEquals("旧标题", jdbc.queryForObject("SELECT blog_title FROM tb_blog WHERE blog_id=100", String.class));
             assertEquals(1, jdbc.queryForObject("SELECT tag_id FROM tb_blog_tag_relation WHERE blog_id=100", Integer.class));
         }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {",", " , ,", "   "})
+    void blankTagsFailBeforeWrites(String blogTags) {
+        seedArticle();
+        Blog newArticle = article(null);
+        newArticle.setBlogTags(blogTags);
+        Blog changedArticle = article(100L);
+        changedArticle.setBlogTags(blogTags);
+        assertEquals("请输入有效的文章标签",
+                assertThrows(BlogWriteException.class, () -> service.saveBlog(newArticle)).getMessage());
+        assertEquals("请输入有效的文章标签",
+                assertThrows(BlogWriteException.class, () -> service.updateBlog(changedArticle)).getMessage());
+        assertEquals(1, count("tb_blog"));
+        assertEquals(1, count("tb_blog_tag"));
+        assertEquals(1, count("tb_blog_tag_relation"));
+        assertEquals("旧标签", jdbc.queryForObject("SELECT blog_tags FROM tb_blog WHERE blog_id=100", String.class));
+        assertEquals(5, rank());
+        verify(relations, never()).batchInsert(any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void tagsAreTrimmedAndDeduplicated(boolean update) {
+        if (update) seedArticle();
+        Blog article = article(update ? 100L : null);
+        article.setBlogTags(" java, java ,,spring,旧标签,旧标签 ");
+        if (update) service.updateBlog(article);
+        else service.saveBlog(article);
+        assertEquals("java,spring,旧标签", jdbc.queryForObject("SELECT blog_tags FROM tb_blog", String.class));
+        assertEquals(3, count("tb_blog_tag"));
+        assertEquals(1, jdbc.queryForObject("SELECT COUNT(*) FROM tb_blog_tag WHERE tag_name='java'", Integer.class));
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM tb_blog_tag WHERE tag_name <> TRIM(tag_name) OR tag_name=''", Integer.class));
+        assertEquals(3, count("tb_blog_tag_relation"));
+    }
+
+    @Test
+    void duplicateTagsCountOnceTowardsLimit() {
+        Blog article = article(null);
+        article.setBlogTags("a,a,b,c,d,e,f");
+        assertEquals("success", service.saveBlog(article));
+        assertEquals(6, count("tb_blog_tag_relation"));
+    }
+
+    @Test
+    void updateInSameCategoryKeepsRank() {
+        seedArticle(3);
+        assertEquals("success", service.updateBlog(article(100L)));
+        assertEquals(5, rank());
+        verify(categories, never()).updateByPrimaryKeySelective(any());
+    }
+
+    @Test
+    void movingArticleRaisesNewCategoryAndLowersOldOne() {
+        jdbc.update("INSERT INTO tb_blog_category(category_id, category_name, category_rank) VALUES (4, 'SQL', 2)");
+        seedArticle(4);
+        assertEquals("success", service.updateBlog(article(100L)));
+        assertEquals(6, rank(3));
+        assertEquals(1, rank(4));
+    }
+
+    @Test
+    void oldCategoryRankFailureRollsBackMove() {
+        jdbc.update("INSERT INTO tb_blog_category(category_id, category_name, category_rank) VALUES (4, 'SQL', 2)");
+        seedArticle(4);
+        doCallRealMethod().doReturn(0).when(categories).updateByPrimaryKeySelective(any());
+        assertThrows(BlogWriteException.class, () -> service.updateBlog(article(100L)));
+        assertEquals(5, rank(3));
+        assertEquals(2, rank(4));
+        assertEquals("旧标题", jdbc.queryForObject("SELECT blog_title FROM tb_blog WHERE blog_id=100", String.class));
+        assertEquals(1, count("tb_blog_tag"));
     }
 
     private void assertWriteFailure(String stage, org.junit.jupiter.api.function.Executable action) {
@@ -238,9 +311,18 @@ class BlogTransactionTests {
         return blog;
     }
 
+    /** 旧文章在默认分类，更新到 Java 分类时会走排序值加 1 的写入。 */
     private void seedArticle() {
-        jdbc.update("INSERT INTO tb_blog(blog_id, blog_title, blog_tags, blog_category_id) VALUES (100, '旧标题', '旧标签', 3)");
+        seedArticle(0);
+    }
+
+    private void seedArticle(int categoryId) {
+        jdbc.update("INSERT INTO tb_blog(blog_id, blog_title, blog_tags, blog_category_id) VALUES (100, '旧标题', '旧标签', ?)", categoryId);
         jdbc.update("INSERT INTO tb_blog_tag_relation(blog_id, tag_id) VALUES (100, 1)");
+    }
+
+    private int rank(int categoryId) {
+        return jdbc.queryForObject("SELECT category_rank FROM tb_blog_category WHERE category_id=?", Integer.class, categoryId);
     }
 
     private int count(String table) {
