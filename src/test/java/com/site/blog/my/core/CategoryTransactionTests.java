@@ -170,6 +170,38 @@ class CategoryTransactionTests {
         assertOriginalState();
     }
 
+    @Test
+    void renamingToAnotherCategorysNameFailsBeforeWrites() {
+        BlogWriteException exception = assertThrows(BlogWriteException.class,
+                () -> service.updateCategory(4, "Java", "new-icon"));
+        assertEquals("分类名称重复", exception.getMessage());
+        assertEquals("SQL", categoryName(4));
+        assertOriginalState();
+        verify(blogs, never()).updateBlogCategorys(anyString(), anyInt(), any());
+    }
+
+    @Test
+    void keepingOwnNameWhileChangingIconSucceeds() {
+        assertTrue(service.updateCategory(3, "Java", "new-icon"));
+        assertEquals("new-icon", jdbc.queryForObject("SELECT category_icon FROM tb_blog_category WHERE category_id=3", String.class));
+    }
+
+    @Test
+    void controllerReportsDuplicateNameAndRejectsMissingIds() throws Exception {
+        CategoryController controller = new CategoryController();
+        ReflectionTestUtils.setField(controller, "categoryService", service);
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new BlogWriteExceptionHandler()).build();
+        mvc.perform(post("/admin/categories/update").param("categoryId", "4")
+                        .param("categoryName", "Java").param("categoryIcon", "new-icon"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.resultCode").value(500))
+                .andExpect(jsonPath("$.message").value("分类名称重复"));
+        mvc.perform(post("/admin/categories/delete").contentType(MediaType.APPLICATION_JSON).content("null"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.resultCode").value(500))
+                .andExpect(jsonPath("$.message").value("参数异常！"));
+        assertOriginalState();
+    }
+
     private void assertOriginalState() {
         assertEquals("Java", categoryName(3));
         assertEquals("SQL", categoryName(4));

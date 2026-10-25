@@ -54,6 +54,11 @@ public class CategoryServiceImpl implements CategoryService {
         if (blogCategory == null) {
             throw new BlogWriteException("分类不存在");
         }
+        // 允许只改图标；改成其他分类已经在用的名称时拒绝
+        BlogCategory sameName = blogCategoryMapper.selectByCategoryName(categoryName);
+        if (sameName != null && !sameName.getCategoryId().equals(categoryId)) {
+            throw new BlogWriteException("分类名称重复");
+        }
         blogCategory.setCategoryIcon(categoryIcon);
         blogCategory.setCategoryName(categoryName);
         // 分类没有文章时更新 0 行也正常；SQL 异常向外传播，触发整体回滚。

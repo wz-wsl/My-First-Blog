@@ -74,11 +74,9 @@ public class CategoryController {
         if (!StringUtils.hasText(categoryIcon)) {
             return ResultGenerator.genFailResult("请选择分类图标！");
         }
-        if (categoryService.updateCategory(categoryId, categoryName, categoryIcon)) {
-            return ResultGenerator.genSuccessResult();
-        } else {
-            return ResultGenerator.genFailResult("分类名称重复");
-        }
+        // 失败（包括名称重复）会抛出 BlogWriteException，由全局异常处理转成 Result
+        categoryService.updateCategory(categoryId, categoryName, categoryIcon);
+        return ResultGenerator.genSuccessResult();
     }
 
 
@@ -87,15 +85,12 @@ public class CategoryController {
      */
     @RequestMapping(value = "/categories/delete", method = RequestMethod.POST)
     @ResponseBody
-    public Result delete(@RequestBody Integer[] ids) {
-        if (ids.length < 1) {
+    public Result delete(@RequestBody(required = false) Integer[] ids) {
+        if (ids == null || ids.length < 1) {
             return ResultGenerator.genFailResult("参数异常！");
         }
-        if (categoryService.deleteBatch(ids)) {
-            return ResultGenerator.genSuccessResult();
-        } else {
-            return ResultGenerator.genFailResult("删除失败");
-        }
+        categoryService.deleteBatch(ids);
+        return ResultGenerator.genSuccessResult();
     }
 
 }
