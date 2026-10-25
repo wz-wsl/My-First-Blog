@@ -73,4 +73,30 @@ class BlogWriteResponseTests {
         Exception thrown = assertThrows(Exception.class, () -> mvc.perform(get("/admin/blogs/edit/100")));
         assertInstanceOf(DataIntegrityViolationException.class, thrown.getCause());
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"save", "update"})
+    void missingSubUrlIsTreatedAsEmpty(String action) throws Exception {
+        BlogService service = mock(BlogService.class);
+        when(service.saveBlog(any())).thenReturn("success");
+        when(service.updateBlog(any())).thenReturn("success");
+        BlogController controller = new BlogController();
+        ReflectionTestUtils.setField(controller, "blogService", service);
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new BlogWriteExceptionHandler()).build();
+        // 不带 blogSubUrl 参数
+        mvc.perform(post("/admin/blogs/" + action)
+                        .param("blogId", "100").param("blogTitle", "标题")
+                        .param("blogCategoryId", "3")
+                        .param("blogTags", "Java").param("blogContent", "正文")
+                        .param("blogCoverImage", "/upload/cover.png")
+                        .param("blogStatus", "1").param("enableComment", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resultCode").value(200));
+        org.mockito.ArgumentCaptor<com.site.blog.my.core.entity.Blog> captor =
+                org.mockito.ArgumentCaptor.forClass(com.site.blog.my.core.entity.Blog.class);
+        if (action.equals("save")) verify(service).saveBlog(captor.capture());
+        else verify(service).updateBlog(captor.capture());
+        assertEquals("", captor.getValue().getBlogSubUrl());
+    }
 }
