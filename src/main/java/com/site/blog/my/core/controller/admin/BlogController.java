@@ -79,7 +79,7 @@ public class BlogController {
     @PostMapping("/blogs/save")
     @ResponseBody
     public Result save(@RequestParam("blogTitle") String blogTitle,
-                       @RequestParam(name = "blogSubUrl", required = false) String blogSubUrl,
+                       @RequestParam(name = "blogSubUrl", defaultValue = "") String blogSubUrl,
                        @RequestParam("blogCategoryId") Integer blogCategoryId,
                        @RequestParam("blogTags") String blogTags,
                        @RequestParam("blogContent") String blogContent,
@@ -131,7 +131,7 @@ public class BlogController {
     @ResponseBody
     public Result update(@RequestParam("blogId") Long blogId,
                          @RequestParam("blogTitle") String blogTitle,
-                         @RequestParam(name = "blogSubUrl", required = false) String blogSubUrl,
+                         @RequestParam(name = "blogSubUrl", defaultValue = "") String blogSubUrl,
                          @RequestParam("blogCategoryId") Integer blogCategoryId,
                          @RequestParam("blogTags") String blogTags,
                          @RequestParam("blogContent") String blogContent,
