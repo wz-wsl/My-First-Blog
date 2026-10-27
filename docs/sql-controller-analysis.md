@@ -215,7 +215,7 @@ SQL 按主键查询本身不限制发布状态，发布判断位于 Service，�
 
 | Controller / 路径（统一加 /admin） | Service 行为 | SQL / 表 |
 |---|---|---|
-| AdminController /login POST | 密码先做 MD5，再查询未锁定账号 | AdminUserMapper.login：用户名、密码、locked=0 |
+| AdminController /login POST | 按用户名查询未锁定账号，再在 Java 中用 BCrypt 比对密码（旧 MD5 登录后自动升级） | AdminUserMapper.selectActiveByLoginUserName：用户名、locked=0 |
 | AdminController /index GET | 读取 5 项后台计数 | 分类、文章、友链、标签、评论各 COUNT；未强制发布/审核状态 |
 | AdminController /profile GET | 查当前管理员 | selectByPrimaryKey |
 | AdminController /profile/password、/profile/name POST | 查账号，校验并更新 | selectByPrimaryKey + updateByPrimaryKeySelective |
@@ -326,12 +326,12 @@ Mapper 内还有一些生成式 insert、updateByPrimaryKey、单条 delete 等�
 
 ### 6.2 已确认的正确性细节
 
-1. **阅读量存在并发丢失更新与旧值覆盖风险。** 当前先读 Blog，再在 Java 做 +1，最后 `updateByPrimaryKey` 写回所有基础字段。两个请求读到相同阅读量，可能只增加 1；与后台编辑交错时也可能把读到的旧标题、分类等写回。更合理的是仅执行 `SET blog_views=blog_views+1` 的原子更新。
+1. **（已修复）阅读量存在并发丢失更新与旧值覆盖风险。** 现已改为 `BlogMapper.increaseBlogViews` 原子自增。原问题： 当前先读 Blog，再在 Java 做 +1，最后 `updateByPrimaryKey` 写回所有基础字段。两个请求读到相同阅读量，可能只增加 1；与后台编辑交错时也可能把读到的旧标题、分类等写回。更合理的是仅执行 `SET blog_views=blog_views+1` 的原子更新。
 2. **文章 selective UPDATE 重复设置正文。** BlogMapper.xml 中 `blog_content` 的非空判断出现两次，生成两个同名列赋值，内容相同但冗余，建议保留一处。
 3. **分类排序值不等于当前文章数量。** 新建文章和每次编辑都会 +1，删除没有 -1，不能把 category_rank 当实时篇数。它目前更接近累计操作排序值。
 4. **自定义 URL 没有唯一约束。** 按路径查询 `LIMIT 1` 且没有排序；重复路径对应哪篇文章没有明确保证，第一条若是草稿，Service 会返回 null，即使还有同路径已发布文章。
 5. **标签、分类名称的查重依赖先查后插。** 脚本没有名称唯一索引，并发创建仍可能重复。标签输入也未逐项去空白和去重，同一请求可能创建重复新标签或重复关系。
-6. **评论写入不查询文章。** Controller 校验部分参数后直接 INSERT；没有在该调用链验证文章存在、已发布、未删除或 enable_comment=0。模板开关不能替代写入校验。
+6. **（已修复）评论写入不查询文章。** 现在 `/blog/comment` 会先确认文章存在、已发布且允许评论。原问题： Controller 校验部分参数后直接 INSERT；没有在该调用链验证文章存在、已发布、未删除或 enable_comment=0。模板开关不能替代写入校验。
 7. **可选 subUrl 存在空值处理缺口。** Controller 标记 `required=false`，但直接调用 `blogSubUrl.trim()`；参数缺失时可能在执行 SQL 前抛异常。数据库又要求该列 NOT NULL，需要统一空字符串或有效路径约定。
 8. **更新时间没有自动维护保证。** 脚本 update_time 只有默认值，没有 ON UPDATE；编辑文章没有显式设置新 updateTime，因此不能把它可靠地当最近编辑时间。
 9. **友链排序没有使用 link_rank。** 字段注释说用于排序，findLinkList 实际按 link_id DESC。

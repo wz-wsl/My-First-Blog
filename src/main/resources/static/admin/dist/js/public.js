@@ -237,6 +237,8 @@ var AdminUI = (function () {
         var settings = $.extend({
             datatype: 'json', height: 'auto', rowNum: 10, rowList: [10, 20, 50],
             styleUI: 'Bootstrap', loadtext: '信息读取中…', autowidth: true,
+            // 单元格文字按纯文本显示，评论等访客内容不会被当成 HTML 执行；自定义 formatter 不受影响。
+            autoencode: true,
             multiselect: true, pager: '#jqGridPager',
             jsonReader: {root: 'data.list', page: 'data.currPage', total: 'data.totalPage', records: 'data.totalCount'},
             prmNames: {page: 'page', rows: 'limit', order: 'order'},

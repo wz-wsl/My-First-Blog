@@ -12,11 +12,13 @@
     admin_user_id, login_user_name, login_password, nick_name, locked
   </sql>
 
-  <select id="login" resultMap="BaseResultMap">
+  <!-- 只按用户名查出未锁定的账号，密码由 Java 端用 BCrypt 比对 -->
+  <select id="selectActiveByLoginUserName" resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List" />
     from tb_admin_user
-    where login_user_name = #{userName,jdbcType=VARCHAR} AND login_password=#{password,jdbcType=VARCHAR} AND locked = 0
+    where login_user_name = #{userName,jdbcType=VARCHAR} AND locked = 0
+    limit 1
   </select>
 
   <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
@@ -85,6 +87,12 @@
       </if>
     </set>
     where admin_user_id = #{adminUserId,jdbcType=INTEGER}
+  </update>
+  <update id="updatePasswordIfUnchanged">
+    update tb_admin_user
+    set login_password = #{newPassword,jdbcType=VARCHAR}
+    where admin_user_id = #{adminUserId,jdbcType=INTEGER}
+      and login_password = #{expectedPassword,jdbcType=VARCHAR}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.site.blog.my.core.entity.AdminUser">
     update tb_admin_user

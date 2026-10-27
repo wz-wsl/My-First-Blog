@@ -334,9 +334,9 @@ public class BlogServiceImpl implements BlogService {
      */
     private BlogDetailVO getBlogDetailVO(Blog blog) {
         if (blog != null && blog.getBlogStatus() == 1) {
-            //增加浏览量
-            blog.setBlogViews(blog.getBlogViews() + 1);
-            blogMapper.updateByPrimaryKey(blog);
+            //增加浏览量：只让数据库给这一列加 1，不写回整行旧数据
+            blogMapper.increaseBlogViews(blog.getBlogId());
+            blog.setBlogViews(blog.getBlogViews() == null ? 1 : blog.getBlogViews() + 1);
             BlogDetailVO blogDetailVO = new BlogDetailVO();
             BeanUtils.copyProperties(blog, blogDetailVO);
             blogDetailVO.setBlogContent(MarkDownUtil.mdToHtml(blogDetailVO.getBlogContent()));

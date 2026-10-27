@@ -21,6 +21,9 @@ public interface BlogMapper {
 
     int updateByPrimaryKey(Blog record);
 
+    /** 浏览量原子加 1 */
+    int increaseBlogViews(Long blogId);
+
     List<Blog> findBlogList(PageQueryUtil pageUtil);
 
     List<Blog> findBlogListByType(@Param("type") int type, @Param("limit") int limit);

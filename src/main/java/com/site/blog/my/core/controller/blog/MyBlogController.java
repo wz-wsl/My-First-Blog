@@ -2,14 +2,17 @@ package com.site.blog.my.core.controller.blog;
 
 import cn.hutool.captcha.ShearCaptcha;
 import com.site.blog.my.core.controller.vo.BlogDetailVO;
+import com.site.blog.my.core.entity.Blog;
 import com.site.blog.my.core.entity.BlogComment;
 import com.site.blog.my.core.entity.BlogLink;
 import com.site.blog.my.core.service.*;
 import com.site.blog.my.core.util.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,6 +39,13 @@ public class MyBlogController {
     @Resource
     private CategoryService categoryService;
 
+    /** 侧栏的最新文章、热门文章和热门标签，首页和各列表页共用 */
+    private void fillSidebar(HttpServletRequest request) {
+        request.setAttribute("newBlogs", blogService.getBlogListForIndexPage(1));
+        request.setAttribute("hotBlogs", blogService.getBlogListForIndexPage(0));
+        request.setAttribute("hotTags", tagService.getBlogTagCountForIndex());
+    }
+
     /**
      * 首页
      *
@@ -58,9 +68,7 @@ public class MyBlogController {
             return "error/error_404";
         }
         request.setAttribute("blogPageResult", blogPageResult);
-        request.setAttribute("newBlogs", blogService.getBlogListForIndexPage(1));
-        request.setAttribute("hotBlogs", blogService.getBlogListForIndexPage(0));
-        request.setAttribute("hotTags", tagService.getBlogTagCountForIndex());
+        fillSidebar(request);
         request.setAttribute("pageName", "首页");
         request.setAttribute("configurations", configService.getAllConfigs());
         return "blog/" + THEME + "/index";
@@ -88,10 +96,11 @@ public class MyBlogController {
     @GetMapping({"/blog/{blogId}", "/article/{blogId}"})
     public String detail(HttpServletRequest request, @PathVariable("blogId") Long blogId, @RequestParam(value = "commentPage", required = false, defaultValue = "1") Integer commentPage) {
         BlogDetailVO blogDetailVO = blogService.getBlogDetail(blogId);
-        if (blogDetailVO != null) {
-            request.setAttribute("blogDetailVO", blogDetailVO);
-            request.setAttribute("commentPageResult", commentService.getCommentPageByBlogIdAndPageNum(blogId, commentPage));
+        if (blogDetailVO == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
+        request.setAttribute("blogDetailVO", blogDetailVO);
+        request.setAttribute("commentPageResult", commentService.getCommentPageByBlogIdAndPageNum(blogId, commentPage));
         request.setAttribute("pageName", "详情");
         request.setAttribute("configurations", configService.getAllConfigs());
         return "blog/" + THEME + "/detail";
@@ -119,9 +128,7 @@ public class MyBlogController {
         request.setAttribute("pageName", "标签");
         request.setAttribute("pageUrl", "tag");
         request.setAttribute("keyword", tagName);
-        request.setAttribute("newBlogs", blogService.getBlogListForIndexPage(1));
-        request.setAttribute("hotBlogs", blogService.getBlogListForIndexPage(0));
-        request.setAttribute("hotTags", tagService.getBlogTagCountForIndex());
+        fillSidebar(request);
         request.setAttribute("configurations", configService.getAllConfigs());
         return "blog/" + THEME + "/list";
     }
@@ -148,9 +155,7 @@ public class MyBlogController {
         request.setAttribute("pageName", "分类");
         request.setAttribute("pageUrl", "category");
         request.setAttribute("keyword", categoryName);
-        request.setAttribute("newBlogs", blogService.getBlogListForIndexPage(1));
-        request.setAttribute("hotBlogs", blogService.getBlogListForIndexPage(0));
-        request.setAttribute("hotTags", tagService.getBlogTagCountForIndex());
+        fillSidebar(request);
         request.setAttribute("configurations", configService.getAllConfigs());
         return "blog/" + THEME + "/list";
     }
@@ -177,9 +182,7 @@ public class MyBlogController {
         request.setAttribute("pageName", "搜索");
         request.setAttribute("pageUrl", "search");
         request.setAttribute("keyword", keyword);
-        request.setAttribute("newBlogs", blogService.getBlogListForIndexPage(1));
-        request.setAttribute("hotBlogs", blogService.getBlogListForIndexPage(0));
-        request.setAttribute("hotTags", tagService.getBlogTagCountForIndex());
+        fillSidebar(request);
         request.setAttribute("configurations", configService.getAllConfigs());
         return "blog/" + THEME + "/list";
     }
@@ -219,10 +222,11 @@ public class MyBlogController {
                           @RequestParam Long blogId, @RequestParam String verifyCode,
                           @RequestParam String commentator, @RequestParam String email,
                           @RequestParam String websiteUrl, @RequestParam String commentBody) {
+        // 验证码只能用一次：先取出并作废，校验失败也不能重复使用。
+        ShearCaptcha shearCaptcha = CaptchaSessionUtil.consume(session);
         if (!StringUtils.hasText(verifyCode)) {
             return ResultGenerator.genFailResult("验证码不能为空");
         }
-        ShearCaptcha shearCaptcha = (ShearCaptcha) session.getAttribute("verifyCode");
         if (shearCaptcha == null || !shearCaptcha.verify(verifyCode)) {
             return ResultGenerator.genFailResult("验证码错误");
         }
@@ -233,29 +237,46 @@ public class MyBlogController {
         if (null == blogId || blogId < 0) {
             return ResultGenerator.genFailResult("非法请求");
         }
+        // 只有已发布、未删除且开启评论的文章才接受评论（enableComment: 0-允许 1-不允许）
+        Blog blog = blogService.getBlogById(blogId);
+        if (blog == null || !Byte.valueOf((byte) 1).equals(blog.getBlogStatus())
+                || !Byte.valueOf((byte) 0).equals(blog.getEnableComment())) {
+            return ResultGenerator.genFailResult("该文章不允许评论");
+        }
+        commentator = commentator == null ? "" : commentator.trim();
+        email = email == null ? "" : email.trim();
+        websiteUrl = websiteUrl == null ? "" : websiteUrl.trim();
+        commentBody = commentBody == null ? "" : commentBody.trim();
         if (!StringUtils.hasText(commentator)) {
             return ResultGenerator.genFailResult("请输入称呼");
+        }
+        if (commentator.length() > 50) {
+            return ResultGenerator.genFailResult("称呼不能超过50个字");
         }
         if (!StringUtils.hasText(email)) {
             return ResultGenerator.genFailResult("请输入邮箱地址");
         }
-        if (!PatternUtil.isEmail(email)) {
+        if (email.length() > 100 || !PatternUtil.isEmail(email)) {
             return ResultGenerator.genFailResult("请输入正确的邮箱地址");
+        }
+        if (websiteUrl.length() > 50) {
+            return ResultGenerator.genFailResult("网址不能超过50个字符");
         }
         if (!StringUtils.hasText(commentBody)) {
             return ResultGenerator.genFailResult("请输入评论内容");
         }
-        if (commentBody.trim().length() > 200) {
+        if (commentBody.length() > 200) {
             return ResultGenerator.genFailResult("评论内容过长");
         }
+        // 原样保存：前台用 th:text 输出、后台表格开启 autoencode，展示时统一做 HTML 转义。
         BlogComment comment = new BlogComment();
         comment.setBlogId(blogId);
-        comment.setCommentator(MyBlogUtils.cleanString(commentator));
+        comment.setCommentator(commentator);
         comment.setEmail(email);
-        if (PatternUtil.isURL(websiteUrl)) {
+        if (StringUtils.hasText(websiteUrl) && PatternUtil.isURL(websiteUrl)) {
             comment.setWebsiteUrl(websiteUrl);
         }
-        comment.setCommentBody(MyBlogUtils.cleanString(commentBody));
+        comment.setCommentBody(commentBody);
         return ResultGenerator.genSuccessResult(commentService.addComment(comment));
     }
 
@@ -267,13 +288,12 @@ public class MyBlogController {
     @GetMapping({"/{subUrl}"})
     public String detail(HttpServletRequest request, @PathVariable("subUrl") String subUrl) {
         BlogDetailVO blogDetailVO = blogService.getBlogDetailBySubUrl(subUrl);
-        if (blogDetailVO != null) {
-            request.setAttribute("blogDetailVO", blogDetailVO);
-            request.setAttribute("pageName", subUrl);
-            request.setAttribute("configurations", configService.getAllConfigs());
-            return "blog/" + THEME + "/detail";
-        } else {
-            return "error/error_400";
+        if (blogDetailVO == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
+        request.setAttribute("blogDetailVO", blogDetailVO);
+        request.setAttribute("pageName", subUrl);
+        request.setAttribute("configurations", configService.getAllConfigs());
+        return "blog/" + THEME + "/detail";
     }
 }
