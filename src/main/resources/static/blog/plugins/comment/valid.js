@@ -11,6 +11,7 @@ function validCommentBody(value) {
     return !isNull(value) && validLength(value, 200);
 }
 
-function validCN_ENString2_100(value) {
-    return value != null && /^[a-zA-Z0-9-\u4E00-\u9FA5_,， ]{2,100}$/.test(String(value).trim());
+// 与数据库 commentator varchar(50) 保持一致
+function validCN_ENString2_50(value) {
+    return value != null && /^[a-zA-Z0-9-\u4E00-\u9FA5_,， ]{2,50}$/.test(String(value).trim());
 }

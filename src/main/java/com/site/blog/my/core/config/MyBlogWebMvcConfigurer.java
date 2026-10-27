@@ -8,6 +8,8 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.nio.file.Path;
+
 @Configuration
 public class MyBlogWebMvcConfigurer implements WebMvcConfigurer {
     @Value("${config.FILE_UPLOAD_DIC}")
@@ -22,6 +24,11 @@ public class MyBlogWebMvcConfigurer implements WebMvcConfigurer {
     }
 
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/upload/**").addResourceLocations("file:" + FILE_UPLOAD_DIC);
+        // 资源目录必须以 / 结尾，否则 Spring 会把最后一级当成文件名
+        String location = Path.of(FILE_UPLOAD_DIC).toAbsolutePath().normalize().toUri().toString();
+        if (!location.endsWith("/")) {
+            location = location + "/";
+        }
+        registry.addResourceHandler("/upload/**").addResourceLocations(location);
     }
 }

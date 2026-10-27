@@ -243,6 +243,8 @@ test('前台评论防重复提交，失败保留正文，成功清空正文并�
         h.node('#' + field).value = value;
     }
     h.node('#email').validity = {valid: true};
+    let captchaRefreshes = 0;
+    h.node('.captcha-refresh').events.click = () => { captchaRefreshes++; };
     const click = h.node('#commentSubmit').events.click;
     click();
     click();
@@ -250,10 +252,15 @@ test('前台评论防重复提交，失败保留正文，成功清空正文并�
     h.finish(h.requests[0], {resultCode: 500, message: '验证码错误'});
     assert.equal(h.node('#commentBody').value, '写得很好！\n谢谢');
     assert.equal(h.node('#commentSubmit').disabled, false);
+    // 服务端每次提交后都会作废验证码，失败时也要清空输入并换一张图
+    assert.equal(h.node('#verifyCode').value, '');
+    assert.equal(captchaRefreshes, 1);
+    h.node('#verifyCode').value = 'next';
     click();
     h.finish(h.requests[1], {resultCode: 200, data: true});
     assert.equal(h.node('#commentBody').value, '');
     assert.equal(h.node('#verifyCode').value, '');
+    assert.equal(captchaRefreshes, 2);
     assert.equal(h.node('#commentSubmit').disabled, false);
 });
 

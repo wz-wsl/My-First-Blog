@@ -9,13 +9,9 @@ public interface AdminUserMapper {
     int insertSelective(AdminUser record);
 
     /**
-     * 登陆方法
-     *
-     * @param userName
-     * @param password
-     * @return
+     * 按用户名查询未锁定的管理员，密码在 Service 中比对
      */
-    AdminUser login(@Param("userName") String userName, @Param("password") String password);
+    AdminUser selectActiveByLoginUserName(@Param("userName") String userName);
 
     AdminUser selectByPrimaryKey(Integer adminUserId);
 

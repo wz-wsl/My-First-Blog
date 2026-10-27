@@ -16,8 +16,8 @@ $('#commentSubmit').on('click', function () {
         swal('参数异常，请刷新页面', {icon: 'warning'});
         return;
     }
-    if (!validCN_ENString2_100(data.commentator)) {
-        swal('请输入 2–100 字的中英文称呼', {icon: 'warning'});
+    if (!validCN_ENString2_50(data.commentator)) {
+        swal('请输入 2–50 字的中英文称呼', {icon: 'warning'});
         return;
     }
     if (isNull(data.email) || !$('#email')[0].validity.valid) {
@@ -41,8 +41,7 @@ $('#commentSubmit').on('click', function () {
         success: function (result) {
             if (result && result.resultCode == 200 && result.data !== false) {
                 swal('评论提交成功，请等待博主审核', {icon: 'success'});
-                $('#commentBody, #verifyCode').val('');
-                $('.captcha-refresh').trigger('click');
+                $('#commentBody').val('');
             } else {
                 // 业务失败时保留正文，避免用户重新输入。
                 swal(result && result.message || '评论提交失败，请重试', {icon: 'error'});
@@ -52,6 +51,9 @@ $('#commentSubmit').on('click', function () {
             swal('请求失败，请检查网络后重试', {icon: 'error'});
         },
         complete: function () {
+            // 服务端每次提交后都会作废验证码，无论成功与否都换一张新的。
+            $('#verifyCode').val('');
+            $('.captcha-refresh').trigger('click');
             commentSubmitting = false;
             $button.prop('disabled', false).html(originalLabel);
         }

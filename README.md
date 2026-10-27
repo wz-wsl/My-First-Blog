@@ -73,6 +73,8 @@ source D:/Program/My-Blog-master/static-files/my_blog_db.sql;
 
 脚本会创建 `my_blog_db`（若不存在），并重建其中的业务表；导入已有数据库前，请先备份。管理员账号及密码哈希沿用导出时的数据，登录应使用对应的实际账号密码。
 
+管理员密码使用 BCrypt 保存。**已有数据库**需要先执行一次 [static-files/upgrade-password-column.sql](static-files/upgrade-password-column.sql)，把密码列加长到 100；旧的 MD5 密码仍可登录，登录成功后会自动改存为 BCrypt。示例数据的默认密码很弱，首次登录后请在后台“修改密码”。
+
 SQL 只保存上传图片的引用路径，不包含上传文件。迁移现有站点时，还需要复制实际上传目录。快照内容与截图说明见 [static-files/README.md](static-files/README.md)。
 
 ### 3. 修改连接和上传配置
@@ -82,15 +84,21 @@ SQL 只保存上传图片的引用路径，不包含上传文件。迁移现有�
 ```properties
 server.port=8080
 
-spring.datasource.url=jdbc:mysql://localhost:3306/my_blog_db?useUnicode=true&characterEncoding=utf8&autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-spring.datasource.username=你的数据库用户名
-spring.datasource.password=你的数据库密码
+spring.datasource.url=${DB_URL:jdbc:mysql://localhost:3306/my_blog_db?...}
+spring.datasource.username=${DB_USERNAME:root}
+spring.datasource.password=${DB_PASSWORD:root}
 
-config.FILE_UPLOAD_DIC=D:/Program/my_blog_update/
+config.FILE_UPLOAD_DIC=${UPLOAD_DIR:D:/Program/my_blog_update/}
 config.theme=amaze
 ```
 
-上传目录需要提前创建，并允许应用写入。当前代码会拼接目录和文件名，因此目录末尾需要保留 `/`。当前项目只保留 `amaze` 主题，主题配置需要对应实际存在的模板与静态资源。
+`${变量名:默认值}` 表示优先读取环境变量，没有设置时使用冒号后面的默认值。部署到服务器时建议用环境变量传入数据库账号密码，不要把真实密码提交到仓库：
+
+```bash
+export DB_USERNAME=blog DB_PASSWORD='强密码' UPLOAD_DIR=/var/my-blog/upload/
+```
+
+上传目录不存在时会自动创建（需要应用有写入权限），末尾的 `/` 可写可不写。后台只允许上传 jpg、jpeg、png、gif、webp 图片，文件名会改为随机生成的名字。当前项目只保留 `amaze` 主题，主题配置需要对应实际存在的模板与静态资源。
 
 ### 4. 调整站点默认值
 

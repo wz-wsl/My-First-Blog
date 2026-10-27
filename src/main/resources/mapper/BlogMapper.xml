@@ -302,6 +302,11 @@
       update_time = #{updateTime,jdbcType=TIMESTAMP}
     where blog_id = #{blogId,jdbcType=BIGINT}
   </update>
+    <!-- 浏览量由数据库原子自增，只改这一列，不会覆盖同时进行的文章编辑 -->
+    <update id="increaseBlogViews" parameterType="java.lang.Long">
+        update tb_blog set blog_views = blog_views + 1
+        where blog_id = #{blogId,jdbcType=BIGINT} and is_deleted = 0
+    </update>
     <update id="updateBlogCategorys">
         update tb_blog
         set blog_category_id = #{categoryId,jdbcType=INTEGER},
