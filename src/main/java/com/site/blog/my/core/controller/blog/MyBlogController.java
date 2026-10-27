@@ -223,8 +223,7 @@ public class MyBlogController {
                           @RequestParam String commentator, @RequestParam String email,
                           @RequestParam String websiteUrl, @RequestParam String commentBody) {
         // 验证码只能用一次：先取出并作废，校验失败也不能重复使用。
-        ShearCaptcha shearCaptcha = (ShearCaptcha) session.getAttribute("verifyCode");
-        session.removeAttribute("verifyCode");
+        ShearCaptcha shearCaptcha = CaptchaSessionUtil.consume(session);
         if (!StringUtils.hasText(verifyCode)) {
             return ResultGenerator.genFailResult("验证码不能为空");
         }

@@ -17,5 +17,10 @@ public interface AdminUserMapper {
 
     int updateByPrimaryKeySelective(AdminUser record);
 
+    /** 仅在密码未被其他请求修改时更新，返回 0 表示原哈希已过期。 */
+    int updatePasswordIfUnchanged(@Param("adminUserId") Integer adminUserId,
+                                  @Param("expectedPassword") String expectedPassword,
+                                  @Param("newPassword") String newPassword);
+
     int updateByPrimaryKey(AdminUser record);
 }

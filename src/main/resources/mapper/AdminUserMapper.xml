@@ -88,6 +88,12 @@
     </set>
     where admin_user_id = #{adminUserId,jdbcType=INTEGER}
   </update>
+  <update id="updatePasswordIfUnchanged">
+    update tb_admin_user
+    set login_password = #{newPassword,jdbcType=VARCHAR}
+    where admin_user_id = #{adminUserId,jdbcType=INTEGER}
+      and login_password = #{expectedPassword,jdbcType=VARCHAR}
+  </update>
   <update id="updateByPrimaryKey" parameterType="com.site.blog.my.core.entity.AdminUser">
     update tb_admin_user
     set login_user_name = #{loginUserName,jdbcType=VARCHAR},

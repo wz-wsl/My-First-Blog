@@ -11,6 +11,8 @@ import com.site.blog.my.core.service.impl.AdminUserServiceImpl;
 import com.site.blog.my.core.service.impl.BlogServiceImpl;
 import com.site.blog.my.core.util.PageQueryUtil;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -51,19 +53,19 @@ class ServiceFixesTests {
 
         assertNotNull(adminService(mapper).login("admin", "123456"));
 
-        ArgumentCaptor<AdminUser> update = ArgumentCaptor.forClass(AdminUser.class);
-        verify(mapper).updateByPrimaryKeySelective(update.capture());
-        String upgraded = update.getValue().getLoginPassword();
+        ArgumentCaptor<String> update = ArgumentCaptor.forClass(String.class);
+        verify(mapper).updatePasswordIfUnchanged(eq(1), eq(MD5_OF_123456), update.capture());
+        String upgraded = update.getValue();
         assertTrue(upgraded.startsWith("$2"), "应保存为 BCrypt");
         assertTrue(new BCryptPasswordEncoder().matches("123456", upgraded));
-        assertNull(update.getValue().getLoginUserName(), "只更新密码列");
+        verify(mapper, never()).updateByPrimaryKeySelective(any());
     }
 
     @Test
     void upgradeFailureDoesNotBlockLogin() {
         AdminUserMapper mapper = mock(AdminUserMapper.class);
         when(mapper.selectActiveByLoginUserName("admin")).thenReturn(admin(MD5_OF_123456));
-        when(mapper.updateByPrimaryKeySelective(any())).thenThrow(new DataIntegrityViolationException("列太短"));
+        when(mapper.updatePasswordIfUnchanged(any(), any(), any())).thenThrow(new DataIntegrityViolationException("列太短"));
         assertNotNull(adminService(mapper).login("admin", "123456"));
     }
 
@@ -76,6 +78,7 @@ class ServiceFixesTests {
         assertNotNull(adminService(mapper).login("admin", "s3cret"));
         assertNull(adminService(mapper).login("admin", "wrong"));
         verify(mapper, never()).updateByPrimaryKeySelective(any());
+        verify(mapper, never()).updatePasswordIfUnchanged(any(), any(), any());
     }
 
     @Test
@@ -88,15 +91,47 @@ class ServiceFixesTests {
     void changingPasswordStoresBcryptAndChecksOldPassword() {
         AdminUserMapper mapper = mock(AdminUserMapper.class);
         when(mapper.selectByPrimaryKey(1)).thenReturn(admin(MD5_OF_123456));
-        when(mapper.updateByPrimaryKeySelective(any())).thenReturn(1);
+        when(mapper.updatePasswordIfUnchanged(any(), any(), any())).thenReturn(1);
         AdminUserServiceImpl service = adminService(mapper);
 
         assertFalse(service.updatePassword(1, "wrong", "new-pass"));
         assertTrue(service.updatePassword(1, "123456", "new-pass"));
 
-        ArgumentCaptor<AdminUser> update = ArgumentCaptor.forClass(AdminUser.class);
-        verify(mapper).updateByPrimaryKeySelective(update.capture());
-        assertTrue(new BCryptPasswordEncoder().matches("new-pass", update.getValue().getLoginPassword()));
+        ArgumentCaptor<String> update = ArgumentCaptor.forClass(String.class);
+        verify(mapper).updatePasswordIfUnchanged(eq(1), eq(MD5_OF_123456), update.capture());
+        assertTrue(new BCryptPasswordEncoder().matches("new-pass", update.getValue()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ascii", "chinese"})
+    void legacyPasswordByteBoundaryPreservesExactPassword(String alphabet) {
+        String atLimit = alphabet.equals("ascii") ? "a".repeat(72) : "密".repeat(24);
+        for (String password : new String[]{atLimit, atLimit + "a"}) {
+            AdminUserMapper mapper = mock(AdminUserMapper.class);
+            String md5 = com.site.blog.my.core.util.MD5Util.MD5Encode(password, "UTF-8");
+            when(mapper.selectActiveByLoginUserName("admin")).thenReturn(admin(md5));
+            AdminUserServiceImpl service = adminService(mapper);
+            assertNotNull(service.login("admin", password));
+            assertNull(service.login("admin", password + "wrong"));
+            if (password.equals(atLimit)) {
+                ArgumentCaptor<String> encoded = ArgumentCaptor.forClass(String.class);
+                verify(mapper).updatePasswordIfUnchanged(eq(1), eq(md5), encoded.capture());
+                assertTrue(new BCryptPasswordEncoder().matches(password, encoded.getValue()));
+            } else {
+                verify(mapper, never()).updatePasswordIfUnchanged(any(), any(), any());
+                assertNull(service.login("admin", atLimit), "超长旧密码不得被截断");
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ascii", "chinese"})
+    void oversizedNewPasswordIsRejectedWithoutChangingStoredPassword(String alphabet) {
+        AdminUserMapper mapper = mock(AdminUserMapper.class);
+        when(mapper.selectByPrimaryKey(1)).thenReturn(admin(MD5_OF_123456));
+        String password = alphabet.equals("ascii") ? "a".repeat(73) : "密".repeat(25);
+        assertFalse(adminService(mapper).updatePassword(1, "123456", password));
+        verify(mapper, never()).updatePasswordIfUnchanged(any(), any(), any());
     }
 
     // ---------- 浏览量 ----------

@@ -2,6 +2,7 @@ package com.site.blog.my.core.controller.common;
 
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.ShearCaptcha;
+import com.site.blog.my.core.util.CaptchaSessionUtil;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -21,7 +22,7 @@ public class CommonController {
         ShearCaptcha shearCaptcha= CaptchaUtil.createShearCaptcha(150, 30, 4, 2);
 
         // 验证码存入session
-        httpServletRequest.getSession().setAttribute("verifyCode", shearCaptcha);
+        CaptchaSessionUtil.store(httpServletRequest.getSession(), shearCaptcha);
 
         // 输出图片流
         shearCaptcha.write(httpServletResponse.getOutputStream());

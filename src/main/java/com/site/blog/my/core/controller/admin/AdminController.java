@@ -3,6 +3,7 @@ package com.site.blog.my.core.controller.admin;
 import cn.hutool.captcha.ShearCaptcha;
 import com.site.blog.my.core.entity.AdminUser;
 import com.site.blog.my.core.service.*;
+import com.site.blog.my.core.util.CaptchaSessionUtil;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -52,8 +53,7 @@ public class AdminController {
                         HttpServletRequest request,
                         HttpSession session) {
         // 验证码只能用一次：先取出并作废，校验失败也不能重复使用。
-        ShearCaptcha shearCaptcha = (ShearCaptcha) session.getAttribute("verifyCode");
-        session.removeAttribute("verifyCode");
+        ShearCaptcha shearCaptcha = CaptchaSessionUtil.consume(session);
         if (!StringUtils.hasText(verifyCode)) {
             session.setAttribute("errorMsg", "验证码不能为空");
             return "admin/login";

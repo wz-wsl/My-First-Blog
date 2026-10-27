@@ -50,10 +50,11 @@ public class AdminUserServiceImpl implements AdminUserService {
         if (adminUser == null || !matches(originalPassword, adminUser.getLoginPassword())) {
             return false;
         }
-        AdminUser update = new AdminUser();
-        update.setAdminUserId(adminUser.getAdminUserId());
-        update.setLoginPassword(PASSWORD_ENCODER.encode(newPassword));
-        return adminUserMapper.updateByPrimaryKeySelective(update) > 0;
+        if (newPassword == null || newPassword.getBytes(StandardCharsets.UTF_8).length > 72) {
+            return false;
+        }
+        return adminUserMapper.updatePasswordIfUnchanged(adminUser.getAdminUserId(),
+                adminUser.getLoginPassword(), PASSWORD_ENCODER.encode(newPassword)) > 0;
     }
 
     @Override
@@ -62,9 +63,11 @@ public class AdminUserServiceImpl implements AdminUserService {
         //当前用户非空才可以进行更改
         if (adminUser != null) {
             //修改信息
-            adminUser.setLoginUserName(loginUserName);
-            adminUser.setNickName(nickName);
-            if (adminUserMapper.updateByPrimaryKeySelective(adminUser) > 0) {
+            AdminUser update = new AdminUser();
+            update.setAdminUserId(adminUser.getAdminUserId());
+            update.setLoginUserName(loginUserName);
+            update.setNickName(nickName);
+            if (adminUserMapper.updateByPrimaryKeySelective(update) > 0) {
                 //修改成功则返回true
                 return true;
             }
@@ -84,6 +87,10 @@ public class AdminUserServiceImpl implements AdminUserService {
             return md5 != null && MessageDigest.isEqual(
                     md5.getBytes(StandardCharsets.UTF_8), storedPassword.getBytes(StandardCharsets.UTF_8));
         }
+        // BCrypt 的校验实现可能截断超长输入，不能让相同前 72 字节的不同密码通过。
+        if (rawPassword.getBytes(StandardCharsets.UTF_8).length > 72) {
+            return false;
+        }
         try {
             return PASSWORD_ENCODER.matches(rawPassword, storedPassword);
         } catch (IllegalArgumentException e) {
@@ -96,11 +103,14 @@ public class AdminUserServiceImpl implements AdminUserService {
     }
 
     private void upgradeLegacyPassword(AdminUser adminUser, String rawPassword) {
-        AdminUser update = new AdminUser();
-        update.setAdminUserId(adminUser.getAdminUserId());
-        update.setLoginPassword(PASSWORD_ENCODER.encode(rawPassword));
+        // BCrypt 最多处理 72 个 UTF-8 字节。旧密码不可截断，也不能因可选迁移而无法登录。
+        // 超长旧密码继续按 MD5 精确验证，待用户主动改为长度允许的新密码后再使用 BCrypt。
+        if (rawPassword.getBytes(StandardCharsets.UTF_8).length > 72) {
+            return;
+        }
         try {
-            adminUserMapper.updateByPrimaryKeySelective(update);
+            adminUserMapper.updatePasswordIfUnchanged(adminUser.getAdminUserId(),
+                    adminUser.getLoginPassword(), PASSWORD_ENCODER.encode(rawPassword));
         } catch (DataAccessException e) {
             // 升级失败不影响本次登录；常见原因是 login_password 列还是 varchar(50)。
             log.warn("管理员密码升级为 BCrypt 失败，请先执行 static-files/upgrade-password-column.sql", e);

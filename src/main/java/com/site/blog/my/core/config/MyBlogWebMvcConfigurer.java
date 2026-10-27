@@ -7,11 +7,20 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
+import org.springframework.web.util.HttpSessionMutexListener;
 
 import java.nio.file.Path;
 
 @Configuration
 public class MyBlogWebMvcConfigurer implements WebMvcConfigurer {
+    // 同一会话即使由不同请求包装对象访问，也使用稳定的锁；更换 Session ID 不改变它。
+    @Bean
+    public ServletListenerRegistrationBean<HttpSessionMutexListener> sessionMutexListener() {
+        return new ServletListenerRegistrationBean<>(new HttpSessionMutexListener());
+    }
+
     @Value("${config.FILE_UPLOAD_DIC}")
     private String FILE_UPLOAD_DIC;
 

@@ -75,6 +75,8 @@ source D:/Program/My-Blog-master/static-files/my_blog_db.sql;
 
 管理员密码使用 BCrypt 保存。**已有数据库**需要先执行一次 [static-files/upgrade-password-column.sql](static-files/upgrade-password-column.sql)，把密码列加长到 100；旧的 MD5 密码仍可登录，登录成功后会自动改存为 BCrypt。示例数据的默认密码很弱，首次登录后请在后台“修改密码”。
 
+BCrypt 的限制是 **72 个 UTF-8 字节**，不是 72 个字符。超过该限制的旧 MD5 密码仍可正常登录，但不会自动迁移或被截断；请主动修改为不超过 72 字节的新密码，完成 BCrypt 升级。修改密码接口会拒绝超过该限制的新密码。
+
 SQL 只保存上传图片的引用路径，不包含上传文件。迁移现有站点时，还需要复制实际上传目录。快照内容与截图说明见 [static-files/README.md](static-files/README.md)。
 
 ### 3. 修改连接和上传配置
